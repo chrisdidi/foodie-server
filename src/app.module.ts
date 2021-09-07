@@ -4,6 +4,7 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as Joi from 'joi';
 import { ServerModule } from './server/server.module';
+import { CommonModule } from './common/common.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { ServerModule } from './server/server.module';
       autoSchemaFile: true,
     }),
     ServerModule,
+    CommonModule,
   ],
 })
 export class AppModule {}
