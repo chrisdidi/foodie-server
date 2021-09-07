@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import * as Joi from 'joi';
 import { ServerModule } from './server/server.module';
 import { CommonModule } from './common/common.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { CommonModule } from './common/common.module';
     }),
     ServerModule,
     CommonModule,
+    UsersModule,
   ],
 })
 export class AppModule {}
