@@ -6,6 +6,7 @@ import * as Joi from 'joi';
 import { ServerModule } from './server/server.module';
 import { CommonModule } from './common/common.module';
 import { UsersModule } from './users/users.module';
+import { User } from './users/entities/user.entity';
 
 @Module({
   imports: [
@@ -35,7 +36,7 @@ import { UsersModule } from './users/users.module';
           }),
       synchronize: process.env.NODE_ENV !== 'prod',
       logging: true,
-      entities: [],
+      entities: [User],
     }),
     GraphQLModule.forRoot({
       autoSchemaFile: true,
