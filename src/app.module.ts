@@ -7,6 +7,7 @@ import { ServerModule } from './server/server.module';
 import { CommonModule } from './common/common.module';
 import { UsersModule } from './users/users.module';
 import { User } from './users/entities/user.entity';
+import { JwtModule } from './jwt/jwt.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { User } from './users/entities/user.entity';
         DB_USERNAME: Joi.string(),
         DB_PASSWORD: Joi.string(),
         DB_NAME: Joi.string(),
+        JWT_PRIVATE_KEY: Joi.string().required(),
       }),
     }),
     TypeOrmModule.forRoot({
@@ -44,6 +46,9 @@ import { User } from './users/entities/user.entity';
     ServerModule,
     CommonModule,
     UsersModule,
+    JwtModule.forRoot({
+      privateKey: process.env.JWT_PRIVATE_KEY,
+    }),
   ],
 })
 export class AppModule {}
