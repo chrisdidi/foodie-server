@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { INTERNAL_SERVER_ERROR_MESSAGE } from 'src/common/common.constants';
 import { validateEmail } from 'src/common/common.utils';
+import { CoreOutput } from 'src/common/dtos/output.dto';
 import { ERROR_NAMES } from 'src/helpers/http-codes';
 import { JwtService } from 'src/jwt/jwt.service';
 import { Repository } from 'typeorm';
@@ -11,7 +12,7 @@ import {
 } from './dtos/create-account.dto';
 import { UserOutput } from './dtos/find-by-id.dto';
 import { SignInInput, SignInOutput } from './dtos/sign-in.dto';
-import { User } from './entities/user.entity';
+import { User, UserRole } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
@@ -161,6 +162,27 @@ export class UsersService {
       return {
         ok: true,
         user,
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        error: {
+          code: ERROR_NAMES.INTERNAL_SERVER_ERROR,
+          message: INTERNAL_SERVER_ERROR_MESSAGE,
+        },
+      };
+    }
+  }
+
+  async switchToRestaurantOwner(id: number): Promise<CoreOutput> {
+    try {
+      const user = await this.users.findOneOrFail({ id });
+      if (user) {
+        user.role = UserRole.RestaurantOwner;
+        await this.users.save(user);
+      }
+      return {
+        ok: true,
       };
     } catch (error) {
       return {

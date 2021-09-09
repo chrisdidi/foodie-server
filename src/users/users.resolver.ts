@@ -1,6 +1,7 @@
 import { Args, Mutation, Resolver, Query } from '@nestjs/graphql';
 import { AuthUser } from 'src/auth/auth-user.decorator';
 import { Role } from 'src/auth/role.decorator';
+import { CoreOutput } from 'src/common/dtos/output.dto';
 import {
   CreateAccountInput,
   CreateAccountOutput,
@@ -29,5 +30,10 @@ export class UsersResolver {
   @Role(['Any'])
   me(@AuthUser() authUser: User) {
     return authUser;
+  }
+
+  @Mutation(() => CoreOutput)
+  async switchToRestaurantOwner(@AuthUser() authUser: User) {
+    return this.usersService.switchToRestaurantOwner(authUser.id);
   }
 }

@@ -11,7 +11,7 @@
 ## What are we going to build:
 
 - [x] Authentication: Users can create account and sign in
-- [ ] Roles: Users can switch their role from Regular users to Restaurant Owner
+- [x] Roles: Users can permanently switch their role from Regular users to Restaurant Owner
 - [ ] Restaurants: Restaurant Owners can create restaurants to start selling their delicious meals
 - [ ] Dish: Restaurant Owners can add a new dish to their restaurant by adding: Image, Price, Name, Description
 - [ ] Orders: Users can place order and both Regular users and Restaurant Owner can see this order and update status of the order
