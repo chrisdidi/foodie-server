@@ -49,9 +49,13 @@ import { JwtMiddleware } from './jwt/jwt.middleware';
     }),
     GraphQLModule.forRoot({
       autoSchemaFile: true,
-      context: ({ req, connection }) => {
+      context: ({ req }) => {
+        let token;
+        if (req && req.headers.authorization) {
+          token = req.headers.authorization.split(' ')[1];
+        }
         return {
-          user: req ? req['user'] : connection.context.user,
+          token: token,
         };
       },
     }),
@@ -64,10 +68,10 @@ import { JwtMiddleware } from './jwt/jwt.middleware';
     AuthModule,
   ],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(JwtMiddleware)
-      .forRoutes({ path: '/graphql', method: RequestMethod.ALL });
-  }
+export class AppModule {
+  // configure(consumer: MiddlewareConsumer) {
+  //   consumer
+  //     .apply(JwtMiddleware)
+  //     .forRoutes({ path: '/graphql', method: RequestMethod.ALL });
+  // }
 }
