@@ -1,4 +1,6 @@
-import { Args, Mutation, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Resolver, Query } from '@nestjs/graphql';
+import { AuthUser } from 'src/auth/auth-user.decorator';
+import { Role } from 'src/auth/role.decorator';
 import {
   CreateAccountInput,
   CreateAccountOutput,
@@ -21,5 +23,11 @@ export class UsersResolver {
   @Mutation(() => SignInOutput)
   async signIn(@Args('input') input: SignInInput): Promise<SignInOutput> {
     return this.usersService.signIn(input);
+  }
+
+  @Query(() => User)
+  @Role(['Any'])
+  me(@AuthUser() authUser: User) {
+    return authUser;
   }
 }

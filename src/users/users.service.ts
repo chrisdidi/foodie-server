@@ -9,6 +9,7 @@ import {
   CreateAccountInput,
   CreateAccountOutput,
 } from './dtos/create-account.dto';
+import { UserOutput } from './dtos/find-by-id.dto';
 import { SignInInput, SignInOutput } from './dtos/sign-in.dto';
 import { User } from './entities/user.entity';
 
@@ -135,6 +136,33 @@ export class UsersService {
       };
     } catch (error) {
       console.log(error);
+      return {
+        ok: false,
+        error: {
+          code: ERROR_NAMES.INTERNAL_SERVER_ERROR,
+          message: INTERNAL_SERVER_ERROR_MESSAGE,
+        },
+      };
+    }
+  }
+
+  async findById(id: number): Promise<UserOutput> {
+    try {
+      const user = await this.users.findOneOrFail({ id });
+      if (!user) {
+        return {
+          ok: false,
+          error: {
+            code: ERROR_NAMES.NOT_FOUND,
+            message: 'User not found!',
+          },
+        };
+      }
+      return {
+        ok: true,
+        user,
+      };
+    } catch (error) {
       return {
         ok: false,
         error: {
