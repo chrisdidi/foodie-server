@@ -20,7 +20,6 @@ export class Restaurant extends CoreEntity {
 
   @Field(() => String, { nullable: true })
   @Column({ nullable: true })
-  @IsString()
   backgroundImage?: string;
 
   @Field(() => User)

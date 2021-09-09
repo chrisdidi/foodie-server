@@ -33,7 +33,7 @@ export class User extends CoreEntity {
 
   @Column()
   @Field(() => String)
-  @IsEmail()
+  @IsString()
   name: string;
 
   @Column({ type: 'enum', enum: UserRole, default: UserRole.RegularUser })

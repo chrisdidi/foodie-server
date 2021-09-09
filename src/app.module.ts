@@ -10,6 +10,7 @@ import { User } from './users/entities/user.entity';
 import { JwtModule } from './jwt/jwt.module';
 import { AuthModule } from './auth/auth.module';
 import { RestaurantsModule } from './restaurants/restaurants.module';
+import { Restaurant } from './restaurants/entities/restaurants.entity';
 
 @Module({
   imports: [
@@ -40,7 +41,7 @@ import { RestaurantsModule } from './restaurants/restaurants.module';
           }),
       synchronize: process.env.NODE_ENV !== 'prod',
       logging: true,
-      entities: [User],
+      entities: [User, Restaurant],
     }),
     GraphQLModule.forRoot({
       autoSchemaFile: true,
