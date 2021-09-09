@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ERROR_NAMES } from 'src/helpers/http-codes';
+import { JwtService } from 'src/jwt/jwt.service';
 import { Repository } from 'typeorm';
 import {
   CreateAccountInput,
@@ -12,6 +13,7 @@ import { User } from './entities/user.entity';
 export class UsersService {
   constructor(
     @InjectRepository(User) private readonly users: Repository<User>,
+    private readonly jwtService: JwtService,
   ) {}
 
   async createAccount({
@@ -56,10 +58,12 @@ export class UsersService {
       );
 
       // sign JWT token
+      const accessToken = this.jwtService.sign(user.id);
+
       // then return jwt token
       return {
         ok: true,
-        accessToken: 'abcd123',
+        accessToken,
       };
     } catch (error) {
       // log error with Sentry
