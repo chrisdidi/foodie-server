@@ -34,6 +34,15 @@ export class UsersService {
           },
         };
       }
+      const emailValid = validateEmail(email);
+      if (!emailValid)
+        return {
+          ok: false,
+          error: {
+            code: ERROR_NAMES.BAD_REQUEST,
+            message: 'Please enter a valid e-mail!',
+          },
+        };
       if (password.length < 8)
         return {
           ok: false,
