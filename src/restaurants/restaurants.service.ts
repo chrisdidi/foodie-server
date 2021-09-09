@@ -8,6 +8,7 @@ import {
   CreateRestaurantInput,
   CreateRestaurantOutput,
 } from './dtos/create-account.dto';
+import { MyRestaurantsOutput } from './dtos/my-restaurants.dto';
 import { Restaurant } from './entities/restaurants.entity';
 
 @Injectable()
@@ -31,6 +32,25 @@ export class RestaurantsService {
         restaurant,
       };
     } catch (error) {
+      return {
+        ok: false,
+        error: {
+          code: ERROR_NAMES.INTERNAL_SERVER_ERROR,
+          message: INTERNAL_SERVER_ERROR_MESSAGE,
+        },
+      };
+    }
+  }
+
+  async myRestaurants(owner: User): Promise<MyRestaurantsOutput> {
+    try {
+      const restaurants = await this.restaurants.find({ owner });
+      return {
+        ok: true,
+        restaurants,
+      };
+    } catch (error) {
+      // log error with Sentry
       return {
         ok: false,
         error: {

@@ -22,6 +22,10 @@ export class Restaurant extends CoreEntity {
   @Column({ nullable: true })
   backgroundImage?: string;
 
+  @Field(() => Number)
+  @Column({ default: 0 })
+  orderCounts: number;
+
   @Field(() => User)
   @ManyToOne(() => User, (user) => user.restaurants, {
     onDelete: 'CASCADE',
