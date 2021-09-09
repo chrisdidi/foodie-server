@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { INTERNAL_SERVER_ERROR_MESSAGE } from 'src/common/common.constants';
 import { ERROR_NAMES } from 'src/helpers/http-codes';
 import { JwtService } from 'src/jwt/jwt.service';
 import { Repository } from 'typeorm';
@@ -7,6 +8,7 @@ import {
   CreateAccountInput,
   CreateAccountOutput,
 } from './dtos/create-account.dto';
+import { SignInInput, SignInOutput } from './dtos/sign-in.dto';
 import { User } from './entities/user.entity';
 
 @Injectable()
@@ -72,7 +74,57 @@ export class UsersService {
         ok: false,
         error: {
           code: ERROR_NAMES.INTERNAL_SERVER_ERROR,
-          message: 'Please try again later.',
+          message: INTERNAL_SERVER_ERROR_MESSAGE,
+        },
+      };
+    }
+  }
+
+  async signIn({ email, password }: SignInInput): Promise<SignInOutput> {
+    try {
+      if (!email || !password)
+        return {
+          ok: false,
+          error: {
+            code: ERROR_NAMES.BAD_REQUEST,
+            message: `Please enter your ${email ? 'password' : 'e-mail'}.`,
+          },
+        };
+
+      email = email.toLowerCase();
+      const user = await this.users.findOne({ email });
+      if (!user)
+        return {
+          ok: false,
+          error: {
+            code: ERROR_NAMES.NOT_FOUND,
+            message:
+              'This e-mail is not registered! Please create account and try again.',
+          },
+        };
+
+      const passwordCorrect = await user.checkPassword(password);
+      if (!passwordCorrect)
+        return {
+          ok: false,
+          error: {
+            code: ERROR_NAMES.FORBIDDEN,
+            message: 'Password incorrect!',
+          },
+        };
+
+      const accessToken = this.jwtService.sign(user.id);
+      return {
+        ok: true,
+        accessToken,
+      };
+    } catch (error) {
+      console.log(error);
+      return {
+        ok: false,
+        error: {
+          code: ERROR_NAMES.INTERNAL_SERVER_ERROR,
+          message: INTERNAL_SERVER_ERROR_MESSAGE,
         },
       };
     }

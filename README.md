@@ -10,7 +10,7 @@
 
 ## What are we going to build:
 
-- [ ] Authentication: Users can create account and sign in
+- [x] Authentication: Users can create account and sign in
 - [ ] Roles: Users can switch their role from Regular users to Restaurant Owner
 - [ ] Restaurants: Restaurant Owners can create restaurants to start selling their delicious meals
 - [ ] Dish: Restaurant Owners can add a new dish to their restaurant by adding: Image, Price, Name, Description
