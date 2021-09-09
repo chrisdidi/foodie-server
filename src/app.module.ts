@@ -9,6 +9,7 @@ import { UsersModule } from './users/users.module';
 import { User } from './users/entities/user.entity';
 import { JwtModule } from './jwt/jwt.module';
 import { AuthModule } from './auth/auth.module';
+import { RestaurantsModule } from './restaurants/restaurants.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { AuthModule } from './auth/auth.module';
       privateKey: process.env.JWT_PRIVATE_KEY,
     }),
     AuthModule,
+    RestaurantsModule,
   ],
 })
 export class AppModule {

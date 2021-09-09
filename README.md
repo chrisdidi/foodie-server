@@ -12,7 +12,7 @@
 
 - [x] Authentication: Users can create account and sign in
 - [x] Roles: Users can permanently switch their role from Regular users to Restaurant Owner
-- [ ] Restaurants: Restaurant Owners can create restaurants to start selling their delicious meals
+- [ ] Restaurants: Restaurant Owners can create restaurants to start selling their delicious meals. Must include name and description.
 - [ ] Dish: Restaurant Owners can add a new dish to their restaurant by adding: Image, Price, Name, Description
 - [ ] Orders: Users can place order and both Regular users and Restaurant Owner can see this order and update status of the order
 - [ ] Blocked Users: Restaurant Owners can choose to block a user
