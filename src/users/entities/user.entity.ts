@@ -35,7 +35,7 @@ export class User extends CoreEntity {
   @IsEmail()
   name: string;
 
-  @Column({ type: 'enum', enum: UserRole })
+  @Column({ type: 'enum', enum: UserRole, default: UserRole.RegularUser })
   @Field(() => UserRole)
   @IsEnum(UserRole)
   role: UserRole;

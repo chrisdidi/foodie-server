@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { INTERNAL_SERVER_ERROR_MESSAGE } from 'src/common/common.constants';
+import { validateEmail } from 'src/common/common.utils';
 import { ERROR_NAMES } from 'src/helpers/http-codes';
 import { JwtService } from 'src/jwt/jwt.service';
 import { Repository } from 'typeorm';
@@ -30,7 +31,9 @@ export class UsersService {
           ok: false,
           error: {
             code: ERROR_NAMES.BAD_REQUEST,
-            message: `${email ? 'Password' : 'E-mail'} is required!`,
+            message: `${
+              email ? (password ? 'Name' : 'Password') : 'E-mail'
+            } is required!`,
           },
         };
       }
@@ -43,7 +46,7 @@ export class UsersService {
             message: 'Please enter a valid e-mail!',
           },
         };
-      if (password.length < 8)
+      if (password.length < 6)
         return {
           ok: false,
           error: {
@@ -101,7 +104,10 @@ export class UsersService {
         };
 
       email = email.toLowerCase();
-      const user = await this.users.findOne({ email });
+      const user = await this.users.findOne(
+        { email },
+        { select: ['id', 'password'] },
+      );
       if (!user)
         return {
           ok: false,
