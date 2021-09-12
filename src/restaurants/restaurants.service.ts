@@ -8,6 +8,10 @@ import {
   CreateRestaurantInput,
   CreateRestaurantOutput,
 } from './dtos/create-account.dto';
+import {
+  MyRestaurantInput,
+  MyRestaurantOutput,
+} from './dtos/my-restaurant.dto';
 import { MyRestaurantsOutput } from './dtos/my-restaurants.dto';
 import { Restaurant } from './entities/restaurants.entity';
 
@@ -51,6 +55,62 @@ export class RestaurantsService {
       };
     } catch (error) {
       // log error with Sentry
+      return {
+        ok: false,
+        error: {
+          code: ERROR_NAMES.INTERNAL_SERVER_ERROR,
+          message: INTERNAL_SERVER_ERROR_MESSAGE,
+        },
+      };
+    }
+  }
+
+  async myRestaurant(
+    owner: User,
+    { id }: MyRestaurantInput,
+  ): Promise<MyRestaurantOutput> {
+    try {
+      const notFoundError =
+        "Restaurant not found or you don't have permission to view it.";
+      if (!id)
+        return {
+          ok: false,
+          error: {
+            code: ERROR_NAMES.BAD_REQUEST,
+            message: 'ID not provided',
+          },
+        };
+      const restaurant = await this.restaurants.findOne({
+        id,
+        ownerId: owner.id,
+      });
+      if (!restaurant) {
+        return {
+          ok: false,
+          error: {
+            code: ERROR_NAMES.NOT_FOUND,
+            message: notFoundError,
+          },
+        };
+      }
+      if (restaurant.ownerId !== owner.id) {
+        return {
+          ok: false,
+          error: {
+            code: ERROR_NAMES.NOT_FOUND,
+            message: notFoundError,
+          },
+        };
+      }
+
+      return {
+        ok: true,
+        restaurant: {
+          ...restaurant,
+          hasIncompleteOrders: true,
+        },
+      };
+    } catch (error) {
       return {
         ok: false,
         error: {

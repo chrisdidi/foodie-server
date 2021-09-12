@@ -26,13 +26,14 @@ export class UsersResolver {
     return this.usersService.signIn(input);
   }
 
-  @Query(() => User)
+  @Query(() => User, { nullable: true })
   @Role(['Any'])
-  me(@AuthUser() authUser: User) {
+  me(@AuthUser() authUser?: User) {
     return authUser;
   }
 
   @Mutation(() => CoreOutput)
+  @Role(['Any'])
   async switchToRestaurantOwner(@AuthUser() authUser: User) {
     return this.usersService.switchToRestaurantOwner(authUser.id);
   }

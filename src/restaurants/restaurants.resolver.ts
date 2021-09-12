@@ -6,6 +6,10 @@ import {
   CreateRestaurantInput,
   CreateRestaurantOutput,
 } from './dtos/create-account.dto';
+import {
+  MyRestaurantInput,
+  MyRestaurantOutput,
+} from './dtos/my-restaurant.dto';
 import { MyRestaurantsOutput } from './dtos/my-restaurants.dto';
 import { RestaurantsService } from './restaurants.service';
 
@@ -28,5 +32,14 @@ export class RestaurantsResolver {
     @AuthUser() authUser: User,
   ): Promise<MyRestaurantsOutput> {
     return this.restaurantService.myRestaurants(authUser);
+  }
+
+  @Query(() => MyRestaurantOutput)
+  @Role(['RestaurantOwner'])
+  async myRestaurant(
+    @AuthUser() authUser: User,
+    @Args('input') input: MyRestaurantInput,
+  ): Promise<MyRestaurantOutput> {
+    return this.restaurantService.myRestaurant(authUser, input);
   }
 }
