@@ -17,7 +17,7 @@ export class Dish extends CoreEntity {
   description?: string;
 
   @Field(() => Float)
-  @Column()
+  @Column('decimal')
   @IsNumber()
   price: number;
 

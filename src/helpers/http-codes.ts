@@ -16,3 +16,27 @@ export const ERROR_NAMES = {
   UNAUTHORIZED: 'UNAUTHORIZED',
   UNPROCESSABLE_ENTITY: 'UNPROCESSABLE_ENTITY',
 };
+
+export const badRequestError = (message?: string) => ({
+  ok: false,
+  error: {
+    code: ERROR_NAMES.BAD_REQUEST,
+    message: message || 'Some required fields are not provided.',
+  },
+});
+
+export const notFoundError = (message?: string) => ({
+  ok: false,
+  error: {
+    code: ERROR_NAMES.NOT_FOUND,
+    message: message || 'Resource not found!',
+  },
+});
+
+export const unauthorizedError = (message?: string) => ({
+  ok: false,
+  error: {
+    code: ERROR_NAMES.UNPROCESSABLE_ENTITY,
+    message: message || `You don't have permission to do that!`,
+  },
+});

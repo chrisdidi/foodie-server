@@ -1,9 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { INTERNAL_SERVER_ERROR_MESSAGE } from 'src/common/common.constants';
-import { ERROR_NAMES } from 'src/helpers/http-codes';
+import {
+  badRequestError,
+  ERROR_NAMES,
+  notFoundError,
+  unauthorizedError,
+} from 'src/helpers/http-codes';
 import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
+import { AddDishInput, AddDishOutput } from './dtos/add-dish.dto';
 import {
   CreateRestaurantInput,
   CreateRestaurantOutput,
@@ -13,6 +19,7 @@ import {
   MyRestaurantOutput,
 } from './dtos/my-restaurant.dto';
 import { MyRestaurantsOutput } from './dtos/my-restaurants.dto';
+import { Dish } from './entities/dish.entity';
 import { Restaurant } from './entities/restaurants.entity';
 
 @Injectable()
@@ -20,6 +27,8 @@ export class RestaurantsService {
   constructor(
     @InjectRepository(Restaurant)
     private readonly restaurants: Repository<Restaurant>,
+    @InjectRepository(Dish)
+    private readonly dishes: Repository<Dish>,
   ) {}
 
   async createRestaurant(
@@ -114,6 +123,42 @@ export class RestaurantsService {
       };
     } catch (error) {
       console.log(error);
+      return {
+        ok: false,
+        error: {
+          code: ERROR_NAMES.INTERNAL_SERVER_ERROR,
+          message: INTERNAL_SERVER_ERROR_MESSAGE,
+        },
+      };
+    }
+  }
+
+  async addDish(
+    owner: User,
+    { name, description, price, restaurantId }: AddDishInput,
+  ): Promise<AddDishOutput> {
+    try {
+      // validate input
+      if (!restaurantId || !name || !price) return badRequestError();
+
+      const restaurant = await this.restaurants.findOne(restaurantId);
+      if (!restaurant) return notFoundError('Restaurant not found!');
+      if (owner.id !== restaurant.ownerId) return unauthorizedError();
+
+      const dish = this.dishes.create({
+        name,
+        description,
+        price,
+        restaurantId,
+        restaurant,
+      });
+      await this.dishes.save(dish);
+
+      return {
+        ok: true,
+        dish,
+      };
+    } catch (error) {
       return {
         ok: false,
         error: {
