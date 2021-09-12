@@ -80,10 +80,12 @@ export class RestaurantsService {
             message: 'ID not provided',
           },
         };
-      const restaurant = await this.restaurants.findOne({
-        id,
-        ownerId: owner.id,
-      });
+      const restaurant = await this.restaurants.findOne(
+        {
+          id,
+        },
+        { relations: ['dishes'] },
+      );
       if (!restaurant) {
         return {
           ok: false,
@@ -111,6 +113,7 @@ export class RestaurantsService {
         },
       };
     } catch (error) {
+      console.log(error);
       return {
         ok: false,
         error: {
