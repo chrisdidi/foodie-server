@@ -22,7 +22,9 @@ export class Dish extends CoreEntity {
   price: number;
 
   @Field(() => Restaurant)
-  @ManyToOne(() => Restaurant, (restaurant) => restaurant.dishes)
+  @ManyToOne(() => Restaurant, (restaurant) => restaurant.dishes, {
+    onDelete: 'CASCADE',
+  })
   restaurant: Restaurant;
 
   @RelationId((dish: Dish) => dish.restaurant)

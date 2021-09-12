@@ -5,6 +5,10 @@ import { User } from 'src/users/entities/user.entity';
 import { Column, Entity, ManyToOne, OneToMany, RelationId } from 'typeorm';
 import { Dish } from './dish.entity';
 
+export interface KeywordsType {
+  [key: string]: number;
+}
+
 @InputType('RestaurantInputType', { isAbstract: true })
 @ObjectType()
 @Entity()
@@ -39,4 +43,7 @@ export class Restaurant extends CoreEntity {
   @Field(() => [Dish])
   @OneToMany(() => Dish, (dish) => dish.restaurant)
   dishes: Dish[];
+
+  @Column({ type: 'jsonb', array: false, default: '{}', nullable: true })
+  keywords: KeywordsType;
 }

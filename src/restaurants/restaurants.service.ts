@@ -7,6 +7,7 @@ import {
   notFoundError,
   unauthorizedError,
 } from 'src/helpers/http-codes';
+import { extractAndCountKeywords } from 'src/helpers/util';
 import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import { AddDishInput, AddDishOutput } from './dtos/add-dish.dto';
@@ -38,7 +39,11 @@ export class RestaurantsService {
     try {
       const restaurant = this.restaurants.create(input);
       restaurant.owner = owner;
-
+      restaurant.keywords = extractAndCountKeywords({}, input.name);
+      restaurant.keywords = extractAndCountKeywords(
+        restaurant.keywords,
+        input.description,
+      );
       await this.restaurants.save(restaurant);
       return {
         ok: true,
@@ -90,9 +95,7 @@ export class RestaurantsService {
           },
         };
       const restaurant = await this.restaurants.findOne(
-        {
-          id,
-        },
+        { id },
         { relations: ['dishes'] },
       );
       if (!restaurant) {
@@ -113,7 +116,6 @@ export class RestaurantsService {
           },
         };
       }
-
       return {
         ok: true,
         restaurant: {
@@ -152,13 +154,24 @@ export class RestaurantsService {
         restaurantId,
         restaurant,
       });
+
+      restaurant.keywords = extractAndCountKeywords(
+        restaurant.keywords || {},
+        name,
+      );
+      restaurant.keywords = extractAndCountKeywords(
+        restaurant.keywords,
+        description,
+      );
       await this.dishes.save(dish);
+      await this.restaurants.save(restaurant);
 
       return {
         ok: true,
         dish,
       };
     } catch (error) {
+      console.log(error);
       return {
         ok: false,
         error: {
