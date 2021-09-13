@@ -12,6 +12,7 @@ import {
   CreateRestaurantOutput,
 } from './dtos/create-account.dto';
 import { DeleteDishInput, DeleteDishOutput } from './dtos/delete-dish.dto';
+import { GetDishByIdInput, GetDishByIdOutput } from './dtos/get-dish-by-id.dto';
 import {
   MyRestaurantInput,
   MyRestaurantOutput,
@@ -66,6 +67,15 @@ export class RestaurantsResolver {
     @Args('input') input: DeleteDishInput,
   ): Promise<DeleteDishOutput> {
     return this.restaurantService.deleteDish(authUser, input);
+  }
+
+  @Query(() => GetDishByIdOutput)
+  @Role(['RestaurantOwner'])
+  async getDishById(
+    @AuthUser() authUser: User,
+    @Args('input') input: GetDishByIdInput,
+  ): Promise<GetDishByIdOutput> {
+    return this.restaurantService.getDishById(authUser, input);
   }
 
   @Mutation(() => UpdateDishOutput)

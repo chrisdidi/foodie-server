@@ -21,6 +21,7 @@ import {
   CreateRestaurantOutput,
 } from './dtos/create-account.dto';
 import { DeleteDishInput, DeleteDishOutput } from './dtos/delete-dish.dto';
+import { GetDishByIdInput, GetDishByIdOutput } from './dtos/get-dish-by-id.dto';
 import {
   MyRestaurantInput,
   MyRestaurantOutput,
@@ -211,6 +212,27 @@ export class RestaurantsService {
       );
       await this.restaurants.save(restaurant);
       await this.dishes.delete({ id });
+      return {
+        ok: true,
+        dish,
+      };
+    } catch (error) {
+      return internalServerError();
+    }
+  }
+
+  async getDishById(
+    owner: User,
+    { id }: GetDishByIdInput,
+  ): Promise<GetDishByIdOutput> {
+    try {
+      const dish = await this.dishes.findOne(id);
+      if (!dish) return notFoundError();
+
+      const restaurant = await this.restaurants.findOne(dish.restaurantId);
+      if (restaurant.ownerId !== owner.id)
+        return unauthorizedError('You can see this.');
+
       return {
         ok: true,
         dish,
