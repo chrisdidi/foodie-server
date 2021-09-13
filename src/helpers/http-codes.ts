@@ -25,6 +25,14 @@ export const badRequestError = (message?: string) => ({
   },
 });
 
+export const internalServerError = (message?: string) => ({
+  ok: false,
+  error: {
+    code: ERROR_NAMES.INTERNAL_SERVER_ERROR,
+    message: message || 'Unexpected error occured! Please try again later.',
+  },
+});
+
 export const notFoundError = (message?: string) => ({
   ok: false,
   error: {

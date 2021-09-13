@@ -32,17 +32,17 @@ export const trimKeywords = (text: string) => {
 export const extractAndCountKeywords = (
   original: KeywordsType,
   text: string,
-  minus?: boolean,
+  remove?: boolean,
 ) => {
   const keywords = trimKeywords(text);
   for (const keyword in keywords) {
     original[keyword] = original[keyword]
-      ? minus
+      ? remove
         ? original[keyword] - keywords[keyword] < 0
           ? 0
           : original[keyword] - keywords[keyword]
         : original[keyword] + keywords[keyword]
-      : minus
+      : remove
       ? 0
       : keywords[keyword];
   }

@@ -4,6 +4,7 @@ import { INTERNAL_SERVER_ERROR_MESSAGE } from 'src/common/common.constants';
 import {
   badRequestError,
   ERROR_NAMES,
+  internalServerError,
   notFoundError,
   unauthorizedError,
 } from 'src/helpers/http-codes';
@@ -15,6 +16,7 @@ import {
   CreateRestaurantInput,
   CreateRestaurantOutput,
 } from './dtos/create-account.dto';
+import { DeleteDishInput, DeleteDishOutput } from './dtos/delete-dish.dto';
 import {
   MyRestaurantInput,
   MyRestaurantOutput,
@@ -179,6 +181,36 @@ export class RestaurantsService {
           message: INTERNAL_SERVER_ERROR_MESSAGE,
         },
       };
+    }
+  }
+
+  async deleteDish(
+    owner: User,
+    { id }: DeleteDishInput,
+  ): Promise<DeleteDishOutput> {
+    try {
+      const dish = await this.dishes.findOne({ id });
+      if (!dish) return notFoundError('Dish not found!');
+      const restaurant = await this.restaurants.findOne(dish.restaurantId);
+      if (restaurant.ownerId !== owner.id) return unauthorizedError();
+      restaurant.keywords = extractAndCountKeywords(
+        restaurant.keywords,
+        dish.name,
+        true,
+      );
+      restaurant.keywords = extractAndCountKeywords(
+        restaurant.keywords,
+        dish.description,
+        true,
+      );
+      await this.restaurants.save(restaurant);
+      await this.dishes.delete({ id });
+      return {
+        ok: true,
+        dish,
+      };
+    } catch (error) {
+      return internalServerError();
     }
   }
 }
