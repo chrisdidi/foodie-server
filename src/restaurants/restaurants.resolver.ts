@@ -13,6 +13,7 @@ import {
   MyRestaurantOutput,
 } from './dtos/my-restaurant.dto';
 import { MyRestaurantsOutput } from './dtos/my-restaurants.dto';
+import { UpdateDishInput, UpdateDishOutput } from './dtos/update-dish.dto';
 import { RestaurantsService } from './restaurants.service';
 
 @Resolver()
@@ -59,7 +60,16 @@ export class RestaurantsResolver {
   async deleteDish(
     @AuthUser() authUser: User,
     @Args('input') input: DeleteDishInput,
-  ): Promise<AddDishOutput> {
+  ): Promise<DeleteDishOutput> {
     return this.restaurantService.deleteDish(authUser, input);
+  }
+
+  @Mutation(() => UpdateDishOutput)
+  @Role(['RestaurantOwner'])
+  async updateDish(
+    @AuthUser() authUser: User,
+    @Args('input') input: UpdateDishInput,
+  ): Promise<UpdateDishOutput> {
+    return this.restaurantService.updateDish(authUser, input);
   }
 }

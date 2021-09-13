@@ -5,6 +5,7 @@ import { Dish } from '../entities/dish.entity';
 @InputType()
 export class AddDishInput extends PickType(Dish, [
   'description',
+  'photo',
   'price',
   'name',
 ]) {

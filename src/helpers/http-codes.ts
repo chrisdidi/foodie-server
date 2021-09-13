@@ -44,7 +44,7 @@ export const notFoundError = (message?: string) => ({
 export const unauthorizedError = (message?: string) => ({
   ok: false,
   error: {
-    code: ERROR_NAMES.UNPROCESSABLE_ENTITY,
+    code: ERROR_NAMES.UNAUTHORIZED,
     message: message || `You don't have permission to do that!`,
   },
 });

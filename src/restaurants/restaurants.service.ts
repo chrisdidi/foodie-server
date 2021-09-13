@@ -22,6 +22,7 @@ import {
   MyRestaurantOutput,
 } from './dtos/my-restaurant.dto';
 import { MyRestaurantsOutput } from './dtos/my-restaurants.dto';
+import { UpdateDishInput, UpdateDishOutput } from './dtos/update-dish.dto';
 import { Dish } from './entities/dish.entity';
 import { Restaurant } from './entities/restaurants.entity';
 
@@ -139,7 +140,7 @@ export class RestaurantsService {
 
   async addDish(
     owner: User,
-    { name, description, price, restaurantId }: AddDishInput,
+    { name, description, photo, price, restaurantId }: AddDishInput,
   ): Promise<AddDishOutput> {
     try {
       // validate input
@@ -152,6 +153,7 @@ export class RestaurantsService {
       const dish = this.dishes.create({
         name,
         description,
+        photo,
         price,
         restaurantId,
         restaurant,
@@ -205,6 +207,54 @@ export class RestaurantsService {
       );
       await this.restaurants.save(restaurant);
       await this.dishes.delete({ id });
+      return {
+        ok: true,
+        dish,
+      };
+    } catch (error) {
+      return internalServerError();
+    }
+  }
+
+  async updateDish(
+    owner: User,
+    { description, id, photo, price, name }: UpdateDishInput,
+  ): Promise<UpdateDishOutput> {
+    try {
+      const dish = await this.dishes.findOne(id);
+      if (!dish) return notFoundError('Dish not found!');
+
+      const restaurant = await this.restaurants.findOne(dish.restaurantId);
+      if (restaurant.ownerId !== owner.id) return unauthorizedError();
+      if (name) {
+        restaurant.keywords = extractAndCountKeywords(
+          restaurant.keywords,
+          dish.name,
+          true,
+        );
+        restaurant.keywords = extractAndCountKeywords(
+          restaurant.keywords,
+          name,
+        );
+        dish.name = name;
+      }
+      if (description) {
+        if (dish.description) {
+          restaurant.keywords = extractAndCountKeywords(
+            restaurant.keywords,
+            dish.description,
+            true,
+          );
+        }
+        restaurant.keywords = extractAndCountKeywords(
+          restaurant.keywords,
+          description,
+        );
+        dish.description = description;
+      }
+      if (typeof price === 'number') dish.price = price;
+      if (photo) dish.photo = photo;
+      await this.dishes.save(dish);
       return {
         ok: true,
         dish,
