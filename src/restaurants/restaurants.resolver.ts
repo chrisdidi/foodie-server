@@ -4,6 +4,10 @@ import { Role } from 'src/auth/role.decorator';
 import { User } from 'src/users/entities/user.entity';
 import { AddDishInput, AddDishOutput } from './dtos/add-dish.dto';
 import {
+  BrowseRestaurantsInput,
+  BrowseRestaurantsOutput,
+} from './dtos/browse-restaurants.dto';
+import {
   CreateRestaurantInput,
   CreateRestaurantOutput,
 } from './dtos/create-account.dto';
@@ -71,5 +75,12 @@ export class RestaurantsResolver {
     @Args('input') input: UpdateDishInput,
   ): Promise<UpdateDishOutput> {
     return this.restaurantService.updateDish(authUser, input);
+  }
+
+  @Query(() => BrowseRestaurantsOutput)
+  async browseRestaurants(
+    @Args('input') input: BrowseRestaurantsInput,
+  ): Promise<BrowseRestaurantsOutput> {
+    return this.restaurantService.browseRestaurants(input);
   }
 }

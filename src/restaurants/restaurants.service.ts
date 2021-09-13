@@ -10,8 +10,12 @@ import {
 } from 'src/helpers/http-codes';
 import { extractAndCountKeywords } from 'src/helpers/util';
 import { User } from 'src/users/entities/user.entity';
-import { Repository } from 'typeorm';
+import { Raw, Repository } from 'typeorm';
 import { AddDishInput, AddDishOutput } from './dtos/add-dish.dto';
+import {
+  BrowseRestaurantsInput,
+  BrowseRestaurantsOutput,
+} from './dtos/browse-restaurants.dto';
 import {
   CreateRestaurantInput,
   CreateRestaurantOutput,
@@ -262,5 +266,41 @@ export class RestaurantsService {
     } catch (error) {
       return internalServerError();
     }
+  }
+
+  async browseRestaurants({
+    limit = 10,
+    query = '',
+    offset = 0,
+  }: BrowseRestaurantsInput): Promise<BrowseRestaurantsOutput> {
+    query = query.toLowerCase();
+    const queryWords = extractAndCountKeywords({}, query);
+    const browseWhere = () => {
+      const queries = [];
+      if (query && queryWords && Object.keys(queryWords).length > 0) {
+        for (const queryWord in queryWords) {
+          queries.push({
+            keywords: Raw(
+              () => `(keywords::jsonb->'${queryWord}') is not null`,
+            ),
+          });
+        }
+        return queries;
+      } else {
+        return queries;
+      }
+    };
+
+    const restaurants = await this.restaurants.find({
+      where: [...browseWhere()],
+      relations: ['dishes'],
+      skip: offset >= 0 ? offset * limit : 0,
+      take: limit,
+    });
+
+    return {
+      ok: true,
+      restaurants,
+    };
   }
 }
