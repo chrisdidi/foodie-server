@@ -196,7 +196,12 @@ export class RestaurantsService {
     { id }: DeleteDishInput,
   ): Promise<DeleteDishOutput> {
     try {
-      const dish = await this.dishes.findOne({ id });
+      const dish = await this.dishes.findOne(
+        { id },
+        {
+          relations: ['restaurant'],
+        },
+      );
       if (!dish) return notFoundError('Dish not found!');
       const restaurant = await this.restaurants.findOne(dish.restaurantId);
       if (restaurant.ownerId !== owner.id) return unauthorizedError();
@@ -227,7 +232,7 @@ export class RestaurantsService {
   ): Promise<GetDishByIdOutput> {
     try {
       const dish = await this.dishes.findOne(id);
-      if (!dish) return notFoundError();
+      if (!dish) return notFoundError('Dish not found');
 
       const restaurant = await this.restaurants.findOne(dish.restaurantId);
       if (restaurant.ownerId !== owner.id)
