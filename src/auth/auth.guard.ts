@@ -18,7 +18,8 @@ export class AuthGuard implements CanActivate {
 
     const gqlContext = GqlExecutionContext.create(context).getContext();
     const token = gqlContext.token;
-    if (token) {
+
+    if (token && token !== 'null') {
       const payload = this.jwtService.verify(token.toString());
       if (typeof payload === 'object' && payload.hasOwnProperty('id')) {
         const { user } = await this.userService.findById(payload.id);
@@ -31,6 +32,6 @@ export class AuthGuard implements CanActivate {
         }
       }
     }
-    return false;
+    return roles.includes('Any');
   }
 }
