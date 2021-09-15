@@ -32,6 +32,10 @@ import {
 } from './dtos/my-restaurant.dto';
 import { MyRestaurantsOutput } from './dtos/my-restaurants.dto';
 import { UpdateDishInput, UpdateDishOutput } from './dtos/update-dish.dto';
+import {
+  UpdateRestaurantInput,
+  UpdateRestaurantOutput,
+} from './dtos/update-restaurant.dto';
 import { Dish } from './entities/dish.entity';
 import { Restaurant } from './entities/restaurants.entity';
 
@@ -78,6 +82,57 @@ export class RestaurantsService {
       if (restaurant.ownerId !== owner.id) return unauthorizedError();
 
       await this.restaurants.delete({ id });
+
+      return {
+        ok: true,
+        restaurant,
+      };
+    } catch (error) {
+      return internalServerError();
+    }
+  }
+
+  async updateRestaurant(
+    owner: User,
+    { id, name, description, backgroundImage }: UpdateRestaurantInput,
+  ): Promise<UpdateRestaurantOutput> {
+    try {
+      if (!id)
+        return badRequestError('You must provide id of restaurant to update');
+
+      const restaurant = await this.restaurants.findOne({ id });
+      if (!restaurant) return notFoundError('Restaurant not found!');
+
+      if (restaurant.ownerId !== owner.id) return unauthorizedError();
+      if (name) {
+        restaurant.keywords = extractAndCountKeywords(
+          restaurant.keywords,
+          restaurant.name,
+          true,
+        );
+        restaurant.keywords = extractAndCountKeywords(
+          restaurant.keywords,
+          name,
+        );
+        restaurant.name = name;
+      }
+      if (description !== restaurant.description) {
+        restaurant.keywords = extractAndCountKeywords(
+          restaurant.keywords,
+          restaurant.description,
+          true,
+        );
+        restaurant.keywords = extractAndCountKeywords(
+          restaurant.keywords,
+          description,
+        );
+        restaurant.description = description;
+      }
+      if (backgroundImage && backgroundImage !== restaurant.backgroundImage) {
+        restaurant.backgroundImage = backgroundImage;
+      }
+
+      await this.restaurants.save(restaurant);
 
       return {
         ok: true,
@@ -271,7 +326,7 @@ export class RestaurantsService {
         );
         dish.name = name;
       }
-      if (description) {
+      if (description !== dish.description) {
         if (dish.description) {
           restaurant.keywords = extractAndCountKeywords(
             restaurant.keywords,
