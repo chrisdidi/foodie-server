@@ -18,6 +18,7 @@
   - View cart: Calculate price, show restaurant and all items in cart
   - Add Item: If item is from a different restaurant, remove all current items before adding
 - [ ] Orders: Users can place order and both Regular users and Restaurant Owner can see this order and update status of the order
+- [ ] Orders activities: Only Read and Add required. Users can see list of status changes history of an order
 - [ ] Blocked Users: Restaurant Owners can choose to block a user
 
 ## How to use this server

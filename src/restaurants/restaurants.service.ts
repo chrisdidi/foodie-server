@@ -21,6 +21,10 @@ import {
   CreateRestaurantOutput,
 } from './dtos/create-account.dto';
 import { DeleteDishInput, DeleteDishOutput } from './dtos/delete-dish.dto';
+import {
+  DeleteRestaurantInput,
+  DeleteRestaurantOutput,
+} from './dtos/delete-restaurant.dto';
 import { GetDishByIdInput, GetDishByIdOutput } from './dtos/get-dish-by-id.dto';
 import {
   MyRestaurantInput,
@@ -58,13 +62,29 @@ export class RestaurantsService {
         restaurant,
       };
     } catch (error) {
+      return internalServerError();
+    }
+  }
+
+  async deleteRestaurant(
+    owner: User,
+    { id }: DeleteRestaurantInput,
+  ): Promise<DeleteRestaurantOutput> {
+    try {
+      if (!id)
+        return badRequestError('You must a provide an ID you want to delete.');
+      const restaurant = await this.restaurants.findOne({ id });
+      if (!restaurant) return notFoundError('Restaurant not found!');
+      if (restaurant.ownerId !== owner.id) return unauthorizedError();
+
+      await this.restaurants.delete({ id });
+
       return {
-        ok: false,
-        error: {
-          code: ERROR_NAMES.INTERNAL_SERVER_ERROR,
-          message: INTERNAL_SERVER_ERROR_MESSAGE,
-        },
+        ok: true,
+        restaurant,
       };
+    } catch (error) {
+      return internalServerError();
     }
   }
 
@@ -77,13 +97,7 @@ export class RestaurantsService {
       };
     } catch (error) {
       // log error with Sentry
-      return {
-        ok: false,
-        error: {
-          code: ERROR_NAMES.INTERNAL_SERVER_ERROR,
-          message: INTERNAL_SERVER_ERROR_MESSAGE,
-        },
-      };
+      return internalServerError();
     }
   }
 
@@ -133,13 +147,7 @@ export class RestaurantsService {
       };
     } catch (error) {
       console.log(error);
-      return {
-        ok: false,
-        error: {
-          code: ERROR_NAMES.INTERNAL_SERVER_ERROR,
-          message: INTERNAL_SERVER_ERROR_MESSAGE,
-        },
-      };
+      return internalServerError();
     }
   }
 
@@ -181,13 +189,7 @@ export class RestaurantsService {
       };
     } catch (error) {
       console.log(error);
-      return {
-        ok: false,
-        error: {
-          code: ERROR_NAMES.INTERNAL_SERVER_ERROR,
-          message: INTERNAL_SERVER_ERROR_MESSAGE,
-        },
-      };
+      return internalServerError();
     }
   }
 
