@@ -5,12 +5,12 @@ import {
   internalServerError,
   unauthorizedError,
 } from 'src/helpers/http-codes';
-import { Restaurant } from 'src/restaurants/entities/restaurants.entity';
 import { RestaurantsService } from 'src/restaurants/restaurants.service';
 import { User, UserRole } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import { AddToCartInput, AddToCartOutput } from './dtos/add-to-cart.dto';
 import { CreateCartOutput } from './dtos/create-cart.dto';
+import { MyCartOutput } from './dtos/my-cart.dto';
 import { CartItem } from './entities/cart-item.entity';
 import { Cart } from './entities/cart.entity';
 
@@ -39,6 +39,45 @@ export class CartService {
       price = price + cartItem[i].dish.price * cartItem[i].quantity;
     }
     return +price.toFixed(2);
+  }
+
+  async myCart(user: User): Promise<MyCartOutput> {
+    try {
+      const cart = await this.cart.findOne(
+        { user },
+        { relations: ['restaurant'] },
+      );
+      if (!cart) {
+        return {
+          ok: true,
+          cart: {
+            restaurant: undefined,
+            cartItems: [],
+            totalPrice: 0,
+          },
+        };
+      }
+      const cartItems = await this.cartItem.find({
+        where: {
+          cart: { id: cart.id },
+        },
+        relations: ['cart', 'dish'],
+        order: {
+          createdAt: 'ASC',
+        },
+      });
+      return {
+        ok: true,
+        cart: {
+          restaurant: cart.restaurant,
+          cartItems,
+          totalPrice: cartItems.length > 0 ? this.calculatePrice(cartItems) : 0,
+        },
+      };
+    } catch (error) {
+      console.log(error);
+      return internalServerError();
+    }
   }
   async addToCart(
     user: User,
@@ -142,10 +181,13 @@ export class CartService {
             // remove from cart
             await this.cartItem.delete({ id: cartItems[i].id });
             cartItems.splice(i, 1);
+            if (cartItems.length === 0) {
+              await this.cart.update({ id: cart.id }, { restaurant: null });
+            }
             return {
               ok: true,
               cart: {
-                restaurant: cart.restaurant,
+                restaurant: cartItems.length === 0 ? null : cart.restaurant,
                 cartItems,
                 totalPrice: this.calculatePrice(cartItems),
               },
