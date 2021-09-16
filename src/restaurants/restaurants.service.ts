@@ -156,6 +156,14 @@ export class RestaurantsService {
     }
   }
 
+  async getRestaurantById(id: number): Promise<Restaurant | undefined> {
+    try {
+      return await this.restaurants.findOne({ id });
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   async myRestaurant(
     owner: User,
     { id }: MyRestaurantInput,
@@ -290,10 +298,6 @@ export class RestaurantsService {
     try {
       const dish = await this.dishes.findOne(id);
       if (!dish) return notFoundError('Dish not found');
-
-      const restaurant = await this.restaurants.findOne(dish.restaurantId);
-      if (restaurant.ownerId !== owner.id)
-        return unauthorizedError('You can see this.');
 
       return {
         ok: true,

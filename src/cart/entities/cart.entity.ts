@@ -2,7 +2,14 @@ import { Field, InputType, ObjectType } from '@nestjs/graphql';
 import { CoreEntity } from 'src/common/entities/core.entity';
 import { Restaurant } from 'src/restaurants/entities/restaurants.entity';
 import { User } from 'src/users/entities/user.entity';
-import { Entity, JoinColumn, ManyToOne, OneToMany, OneToOne } from 'typeorm';
+import {
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  OneToOne,
+  RelationId,
+} from 'typeorm';
 import { CartItem } from './cart-item.entity';
 
 @InputType('CartInputType', { isAbstract: true })
@@ -19,6 +26,9 @@ export class Cart extends CoreEntity {
     onDelete: 'SET NULL',
   })
   restaurant?: Restaurant;
+
+  @RelationId((cart: Cart) => cart.restaurant)
+  restaurantId?: number;
 
   @Field(() => [CartItem])
   @OneToMany(() => CartItem, (cartItem) => cartItem.cart)
