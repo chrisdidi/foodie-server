@@ -36,9 +36,9 @@ export class CartService {
   calculatePrice(cartItem: CartItem[]) {
     let price = 0;
     for (let i = 0; i < cartItem.length; i++) {
-      price = price + +(cartItem[i].dish.price * cartItem[i].quantity);
+      price = price + cartItem[i].dish.price * cartItem[i].quantity;
     }
-    return +price.toPrecision(2);
+    return +price.toFixed(2);
   }
   async addToCart(
     user: User,
@@ -71,14 +71,21 @@ export class CartService {
               ? {
                   code: ERROR_NAMES.NOT_FOUND,
                   message:
-                    "The meal you're trying to add has been deleted! Please try a different dish!",
+                    "The meal you're trying to add has been deleted! Try something else?",
                 }
               : error,
         };
       }
       if (dish.restaurantId !== cart.restaurantId) {
-        await this.cartItem.delete({ cartId: cart.id });
+        await this.cartItem.delete({
+          cart: {
+            id: cart.id,
+          },
+        });
         if (quantity > 0) {
+          const restaurant = await this.restaurantsService.getRestaurantById(
+            dish.restaurantId,
+          );
           const addedCartItem = await this.cartItem.save(
             this.cartItem.create({
               cart,
@@ -86,14 +93,9 @@ export class CartService {
               quantity,
             }),
           );
-          await this.cart.update(
-            { id: cart.id },
-            { restaurantId: dish.restaurantId },
-          );
+          await this.cart.update({ id: cart.id }, { restaurant });
           const cartItems = [addedCartItem];
-          const restaurant = await this.restaurantsService.getRestaurantById(
-            dish.restaurantId,
-          );
+
           return {
             ok: true,
             cart: {
@@ -119,6 +121,7 @@ export class CartService {
         order: {
           createdAt: 'ASC',
         },
+        relations: ['dish'],
       });
       if (cartItems.length > 0) {
         for (let i = 0; i < cartItems.length; i++) {

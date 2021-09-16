@@ -25,6 +25,6 @@ class CartOutput {
 }
 @ObjectType()
 export class AddToCartOutput extends CoreOutput {
-  @Field(() => CartOutput)
+  @Field(() => CartOutput, { nullable: true })
   cart?: CartOutput;
 }
