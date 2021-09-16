@@ -46,45 +46,51 @@ export class CartService {
   ): Promise<AddToCartOutput> {
     try {
       if (user.role !== UserRole.RegularUser) return unauthorizedError();
-
-      const cartExists = await this.cart.findOne(
+      let cart = await this.cart.findOne(
         { user },
-        { relations: ['cartItems', 'restaurant', 'cartItems.dish'] },
+        { relations: ['restaurant'] },
       );
-      const { dish } = await this.restaurantsService.getDishById(user, {
+      if (!cart) {
+        const createCartOutput = await this.createCart(user);
+        if (createCartOutput.cart) {
+          cart = createCartOutput.cart;
+        } else {
+          return internalServerError(
+            'Sorry we cannot process your request at the moment! Please try again later!',
+          );
+        }
+      }
+      const { dish, error } = await this.restaurantsService.getDishById(user, {
         id: dishId,
       });
-      // don't process deleted dishes
-      // cartItems are automatically deleted due to DB relations
       if (!dish) {
         return {
           ok: false,
-          cart: cartExists
-            ? {
-                restaurant: cartExists.restaurant,
-                cartItems: cartExists.cartItems,
-                totalPrice: this.calculatePrice(cartExists.cartItems),
-              }
-            : {
-                cartItems: [],
-                totalPrice: 0,
-              },
-          error: {
-            code: ERROR_NAMES.NOT_FOUND,
-            message:
-              'The dish may have been deleted! Please refresh your browser for up-to-date data.',
-          },
+          error:
+            error?.code === ERROR_NAMES.NOT_FOUND
+              ? {
+                  code: ERROR_NAMES.NOT_FOUND,
+                  message:
+                    "The meal you're trying to add has been deleted! Please try a different dish!",
+                }
+              : error,
         };
       }
-      let cart: Cart;
-      if (!cartExists) {
-        let restaurantId;
+      if (dish.restaurantId !== cart.restaurantId) {
+        await this.cartItem.delete({ cartId: cart.id });
         if (quantity > 0) {
-          restaurantId = dish.restaurantId;
-          cart = await this.cart.save(this.cart.create({ user, restaurantId }));
-          const newCartItem = await this.cartItem.save(
-            this.cartItem.create({ dish, quantity, cart }),
+          const addedCartItem = await this.cartItem.save(
+            this.cartItem.create({
+              cart,
+              dish,
+              quantity,
+            }),
           );
+          await this.cart.update(
+            { id: cart.id },
+            { restaurantId: dish.restaurantId },
+          );
+          const cartItems = [addedCartItem];
           const restaurant = await this.restaurantsService.getRestaurantById(
             dish.restaurantId,
           );
@@ -92,85 +98,80 @@ export class CartService {
             ok: true,
             cart: {
               restaurant,
-              cartItems: [newCartItem],
-              totalPrice: +(dish.price * quantity).toFixed(2),
+              cartItems,
+              totalPrice: this.calculatePrice(cartItems),
             },
           };
         }
         return {
           ok: true,
           cart: {
+            restaurant: undefined,
             cartItems: [],
             totalPrice: 0,
           },
         };
       }
-      cart = cartExists;
-      const restaurant = await this.restaurantsService.getRestaurantById(
-        dish.restaurantId,
-      );
-      if (restaurant.id !== cart.restaurantId) {
-        await this.cartItem.delete({ cartId: cart.id });
-        const addedItem = await this.cartItem.save(
-          this.cartItem.create({
-            cartId: cart.id,
-            dish,
-          }),
-        );
-        await this.cart.update(
-          { id: cart.id },
-          { restaurantId: restaurant.id },
-        );
-        cart.cartItems = [addedItem];
-        return {
-          ok: true,
-          cart: {
-            restaurant,
-            cartItems: cart.cartItems,
-            totalPrice: this.calculatePrice(cart.cartItems),
-          },
-        };
-      }
-      for (let i = 0; i < cart.cartItems.length; i++) {
-        const curCartItem = cart.cartItems[i];
-        if (curCartItem.dishId === dishId) {
-          if (quantity > 0) {
-            await this.cartItem.update({ id: curCartItem.id }, { quantity });
-            cart.cartItems[i].quantity = quantity;
-            return {
-              ok: true,
-              cart: {
-                restaurant,
-                cartItems: cart.cartItems,
-                totalPrice: this.calculatePrice(cart.cartItems),
-              },
-            };
-          } else {
-            await this.cartItem.delete({ id: curCartItem.id });
-            cart.cartItems.splice(i, 1);
-            if (cart.cartItems.length === 0) {
-              await this.cart.update(
-                { id: cart.id },
-                { restaurant: undefined },
-              );
-              cart.restaurant = undefined;
-              cart.restaurantId = undefined;
+      const cartItems = await this.cartItem.find({
+        where: {
+          cart,
+        },
+        order: {
+          createdAt: 'ASC',
+        },
+      });
+      if (cartItems.length > 0) {
+        for (let i = 0; i < cartItems.length; i++) {
+          if (cartItems[i].dishId === dishId) {
+            if (quantity > 0) {
+              // update item quantity
+              await this.cartItem.update({ id: cartItems[i].id }, { quantity });
+              cartItems[i].quantity = quantity;
+              return {
+                ok: true,
+                cart: {
+                  restaurant: cart.restaurant,
+                  cartItems,
+                  totalPrice: this.calculatePrice(cartItems),
+                },
+              };
             }
+            // remove from cart
+            await this.cartItem.delete({ id: cartItems[i].id });
+            cartItems.splice(i, 1);
             return {
               ok: true,
               cart: {
-                restaurant,
-                cartItems: cart.cartItems,
-                totalPrice:
-                  cart.cartItems.length > 0
-                    ? this.calculatePrice(cart.cartItems)
-                    : 0,
+                restaurant: cart.restaurant,
+                cartItems,
+                totalPrice: this.calculatePrice(cartItems),
               },
             };
           }
         }
       }
-      // add item to cartItems
+
+      // add new item to list
+      if (quantity > 0) {
+        const addedItem = await this.cartItem.save(
+          this.cartItem.create({
+            cart,
+            dish,
+            quantity,
+          }),
+        );
+
+        cartItems.push(addedItem);
+      }
+
+      return {
+        ok: true,
+        cart: {
+          restaurant: cart.restaurant,
+          cartItems: cartItems,
+          totalPrice: this.calculatePrice(cartItems),
+        },
+      };
     } catch (error) {
       console.log(error);
       return internalServerError();
