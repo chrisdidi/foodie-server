@@ -1,5 +1,6 @@
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
 import { IsString } from 'class-validator';
+import { Cart } from 'src/cart/entities/cart.entity';
 import { CoreEntity } from 'src/common/entities/core.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Column, Entity, ManyToOne, OneToMany, RelationId } from 'typeorm';
@@ -46,4 +47,8 @@ export class Restaurant extends CoreEntity {
 
   @Column({ type: 'jsonb', array: false, default: '{}', nullable: true })
   keywords: KeywordsType;
+
+  @Field(() => [Cart])
+  @OneToMany(() => Cart, (cart) => cart.restaurant)
+  carts: Cart[];
 }
