@@ -9,5 +9,6 @@ import { RestaurantsModule } from 'src/restaurants/restaurants.module';
 @Module({
   imports: [TypeOrmModule.forFeature([Cart, CartItem]), RestaurantsModule],
   providers: [CartService, CartResolver],
+  exports: [CartService],
 })
 export class CartModule {}
