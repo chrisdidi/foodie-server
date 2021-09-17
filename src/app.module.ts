@@ -45,6 +45,10 @@ import { OrderStatusHistory } from './orders/entities/order-status-history.entit
       database: process.env.DB_NAME,
       synchronize: true,
       logging: true,
+      ssl:
+        process.env.NODE_ENV === 'production'
+          ? { rejectUnauthorized: false }
+          : false,
       entities: [
         User,
         Restaurant,
