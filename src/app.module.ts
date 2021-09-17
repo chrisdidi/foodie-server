@@ -38,15 +38,11 @@ import { OrderStatusHistory } from './orders/entities/order-status-history.entit
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      ...(process.env.DATABASE_URL
-        ? { url: process.env.DATABASE_URL }
-        : {
-            host: process.env.DB_HOST,
-            port: +process.env.DB_PORT,
-            username: process.env.DB_USERNAME,
-            password: process.env.DB_PASSWORD,
-            database: process.env.DB_NAME,
-          }),
+      host: process.env.DB_HOST,
+      port: +process.env.DB_PORT,
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
       synchronize: process.env.NODE_ENV !== 'prod',
       logging: true,
       entities: [
@@ -84,10 +80,4 @@ import { OrderStatusHistory } from './orders/entities/order-status-history.entit
     OrdersModule,
   ],
 })
-export class AppModule {
-  // configure(consumer: MiddlewareConsumer) {
-  //   consumer
-  //     .apply(JwtMiddleware)
-  //     .forRoutes({ path: '/graphql', method: RequestMethod.ALL });
-  // }
-}
+export class AppModule {}
