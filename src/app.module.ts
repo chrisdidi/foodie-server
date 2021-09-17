@@ -15,6 +15,10 @@ import { Dish } from './restaurants/entities/dish.entity';
 import { CartModule } from './cart/cart.module';
 import { Cart } from './cart/entities/cart.entity';
 import { CartItem } from './cart/entities/cart-item.entity';
+import { OrdersModule } from './orders/orders.module';
+import { Order } from './orders/entities/order.entity';
+import { OrderItem } from './orders/entities/order-item.entity';
+import { OrderStatusHistory } from './orders/entities/order-status-history.entity';
 
 @Module({
   imports: [
@@ -45,7 +49,16 @@ import { CartItem } from './cart/entities/cart-item.entity';
           }),
       synchronize: process.env.NODE_ENV !== 'prod',
       logging: true,
-      entities: [User, Restaurant, Dish, Cart, CartItem],
+      entities: [
+        User,
+        Restaurant,
+        Dish,
+        Cart,
+        CartItem,
+        Order,
+        OrderItem,
+        OrderStatusHistory,
+      ],
     }),
     GraphQLModule.forRoot({
       autoSchemaFile: true,
@@ -68,6 +81,7 @@ import { CartItem } from './cart/entities/cart-item.entity';
     AuthModule,
     RestaurantsModule,
     CartModule,
+    OrdersModule,
   ],
 })
 export class AppModule {

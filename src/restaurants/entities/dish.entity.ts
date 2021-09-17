@@ -2,6 +2,7 @@ import { Field, Float, InputType, ObjectType } from '@nestjs/graphql';
 import { IsNumber } from 'class-validator';
 import { CartItem } from 'src/cart/entities/cart-item.entity';
 import { CoreEntity } from 'src/common/entities/core.entity';
+import { OrderItem } from 'src/orders/entities/order-item.entity';
 import { Column, Entity, ManyToOne, OneToMany, RelationId } from 'typeorm';
 import { Restaurant } from './restaurants.entity';
 
@@ -38,4 +39,8 @@ export class Dish extends CoreEntity {
   @Field(() => [CartItem])
   @OneToMany(() => CartItem, (cartItem) => cartItem.dish)
   cartItems: CartItem[];
+
+  @Field(() => [OrderItem])
+  @OneToMany(() => OrderItem, (orderItem) => orderItem.dish)
+  orderedItems: OrderItem[];
 }

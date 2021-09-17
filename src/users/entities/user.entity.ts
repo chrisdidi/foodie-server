@@ -10,6 +10,8 @@ import { CoreEntity } from 'src/common/entities/core.entity';
 import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Restaurant } from 'src/restaurants/entities/restaurants.entity';
+import { Order } from 'src/orders/entities/order.entity';
+import { OrderStatusHistory } from 'src/orders/entities/order-status-history.entity';
 export enum UserRole {
   RegularUser = 'RegularUser',
   RestaurantOwner = 'RestaurantOwner',
@@ -44,6 +46,17 @@ export class User extends CoreEntity {
   @Field(() => [Restaurant])
   @OneToMany(() => Restaurant, (restaurant) => restaurant.owner)
   restaurants: Restaurant[];
+
+  @Field(() => [Order])
+  @OneToMany(() => Order, (order) => order.user)
+  orders: Order[];
+
+  @Field(() => [OrderStatusHistory])
+  @OneToMany(
+    () => OrderStatusHistory,
+    (orderStatusHistory) => orderStatusHistory.user,
+  )
+  statusHistory: OrderStatusHistory[];
 
   @BeforeInsert()
   @BeforeUpdate()
