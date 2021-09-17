@@ -81,7 +81,7 @@ export class CartService {
   }
   async addToCart(
     user: User,
-    { dishId, quantity }: AddToCartInput,
+    { add, dishId, quantity }: AddToCartInput,
   ): Promise<AddToCartOutput> {
     try {
       if (user.role !== UserRole.RegularUser) return unauthorizedError();
@@ -165,6 +165,7 @@ export class CartService {
       if (cartItems.length > 0) {
         for (let i = 0; i < cartItems.length; i++) {
           if (cartItems[i].dishId === dishId) {
+            if (add) quantity = cartItems[i].quantity + quantity;
             if (quantity > 0) {
               // update item quantity
               await this.cartItem.update({ id: cartItems[i].id }, { quantity });

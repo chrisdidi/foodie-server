@@ -9,6 +9,9 @@ export class AddToCartInput {
 
   @Field(() => Int)
   quantity: number;
+
+  @Field(() => Boolean, { nullable: true })
+  add?: boolean;
 }
 
 @ObjectType()
