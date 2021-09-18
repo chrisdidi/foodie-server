@@ -4,6 +4,7 @@ import { CartService } from 'src/cart/cart.service';
 import {
   badRequestError,
   internalServerError,
+  notFoundError,
   unauthorizedError,
 } from 'src/helpers/http-codes';
 import { RestaurantsService } from 'src/restaurants/restaurants.service';
@@ -12,6 +13,7 @@ import { Repository } from 'typeorm';
 import { CreateOrderItemOutput } from './dtos/create-order-item.dto';
 import { CreateOrderOutput } from './dtos/create-order.dto';
 import { CreateStatusHistoryOutput } from './dtos/create-status-history.dto';
+import { GetOrderInput, GetOrderOutput } from './dtos/get-order.dto';
 import { OrderItem } from './entities/order-item.entity';
 import {
   OrderStatusHistory,
@@ -105,7 +107,7 @@ export class OrdersService {
 
       if (!cart || cart.cartItems.length <= 0)
         return badRequestError(
-          "You don't have anything in cart! Or your food is no longer available in the restaurant.",
+          "You don't have anything in cart or some of your items no longer available in the restaurant.",
         );
 
       if (!cart.restaurant)
@@ -170,6 +172,54 @@ export class OrdersService {
       return {
         ok: true,
         orderItem,
+      };
+    } catch (error) {
+      return internalServerError();
+    }
+  }
+
+  async getOrder(user: User, { id }: GetOrderInput): Promise<GetOrderOutput> {
+    try {
+      const order = await this.orders.findOne(
+        { id },
+        { relations: ['restaurant'] },
+      );
+      if (!order) return notFoundError('Order not found!');
+      if (user.role === UserRole.RegularUser && user.id !== order.userId)
+        return notFoundError('Order not found!');
+      if (
+        user.role === UserRole.RestaurantOwner &&
+        user.id !== order.restaurant?.ownerId
+      )
+        return notFoundError('Order not found!');
+
+      const orderItems = await this.orderItems.find({
+        where: {
+          order: {
+            id: order.id,
+          },
+        },
+        relations: ['dish'],
+      });
+      const orderStatus = await this.orderStatusHistory.find({
+        where: {
+          order: {
+            id: order.id,
+          },
+        },
+        relations: ['user'],
+        order: {
+          id: 'DESC',
+        },
+      });
+      order.items = orderItems;
+      if (orderStatus && orderStatus.length > 0) {
+        order.statusHistory = orderStatus;
+      }
+      return {
+        ok: true,
+        order,
+        status: orderStatus[0]?.status || statusMap[0].status,
       };
     } catch (error) {
       return internalServerError();

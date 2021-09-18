@@ -1,11 +1,5 @@
-import {
-  Field,
-  Float,
-  InputType,
-  ObjectType,
-  registerEnumType,
-} from '@nestjs/graphql';
-import { IsEnum, IsNumber } from 'class-validator';
+import { Field, Float, InputType, ObjectType } from '@nestjs/graphql';
+import { IsNumber } from 'class-validator';
 import { CoreEntity } from 'src/common/entities/core.entity';
 import { Restaurant } from 'src/restaurants/entities/restaurants.entity';
 import { User } from 'src/users/entities/user.entity';
@@ -13,25 +7,10 @@ import { Column, Entity, ManyToOne, OneToMany, RelationId } from 'typeorm';
 import { OrderItem } from './order-item.entity';
 import { OrderStatusHistory } from './order-status-history.entity';
 
-export enum OrderStatus {
-  Placed = 'Placed',
-  Canceled = 'Canceled',
-  Processing = 'Processing',
-  In_Route = 'In_Route',
-  Delivered = 'Delivered',
-  Received = 'Received',
-}
-
-registerEnumType(OrderStatus, { name: 'OrderStatus' });
 @InputType('OrdersInput', { isAbstract: true })
 @ObjectType()
 @Entity()
 export class Order extends CoreEntity {
-  @Column({ type: 'enum', enum: OrderStatus, default: OrderStatus.Placed })
-  @Field(() => OrderStatus)
-  @IsEnum(OrderStatus)
-  status: OrderStatus;
-
   @Field(() => Float)
   @Column('decimal')
   @IsNumber()
