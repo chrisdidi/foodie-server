@@ -2,7 +2,7 @@ import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { AuthUser } from 'src/auth/auth-user.decorator';
 import { Role } from 'src/auth/role.decorator';
 import { User } from 'src/users/entities/user.entity';
-import { CreateOrderOutput } from './dtos/create-order.dto';
+import { CreateOrderInput, CreateOrderOutput } from './dtos/create-order.dto';
 import { GetOrderInput, GetOrderOutput } from './dtos/get-order.dto';
 import { GetOrdersInput, GetOrdersOutput } from './dtos/get-orders.dto';
 import { SeenOrderInput, SeenOrderOutput } from './dtos/seen-order.dto';
@@ -18,8 +18,11 @@ export class OrdersResolver {
 
   @Mutation(() => CreateOrderOutput)
   @Role(['RegularUser'])
-  async createOrder(@AuthUser() user: User): Promise<CreateOrderOutput> {
-    return this.ordersService.createOrder(user);
+  async createOrder(
+    @AuthUser() user: User,
+    @Args('input') input: CreateOrderInput,
+  ): Promise<CreateOrderOutput> {
+    return this.ordersService.createOrder(user, input);
   }
 
   @Query(() => GetOrderOutput)

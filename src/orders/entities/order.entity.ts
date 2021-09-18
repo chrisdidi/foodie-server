@@ -11,6 +11,14 @@ import { OrderStatusHistory } from './order-status-history.entity';
 @ObjectType()
 @Entity()
 export class Order extends CoreEntity {
+  @Field(() => String)
+  @Column()
+  deliveryAddress: string;
+
+  @Field(() => String)
+  @Column()
+  phoneNo: string;
+
   @Field(() => Float)
   @Column('decimal')
   @IsNumber()

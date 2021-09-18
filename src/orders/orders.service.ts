@@ -11,7 +11,7 @@ import { RestaurantsService } from 'src/restaurants/restaurants.service';
 import { User, UserRole } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import { CreateOrderItemOutput } from './dtos/create-order-item.dto';
-import { CreateOrderOutput } from './dtos/create-order.dto';
+import { CreateOrderInput, CreateOrderOutput } from './dtos/create-order.dto';
 import { CreateStatusHistoryOutput } from './dtos/create-status-history.dto';
 import { GetOrderInput, GetOrderOutput } from './dtos/get-order.dto';
 import {
@@ -122,7 +122,10 @@ export class OrdersService {
     }
   }
 
-  async createOrder(user: User): Promise<CreateOrderOutput> {
+  async createOrder(
+    user: User,
+    input: CreateOrderInput,
+  ): Promise<CreateOrderOutput> {
     try {
       if (!user) return badRequestError('Cannot process this request.');
       const { cart, error: cartError } = await this.cartService.myCart(user);
@@ -145,6 +148,7 @@ export class OrdersService {
 
       const order = await this.orders.save(
         this.orders.create({
+          ...input,
           price: cart.totalPrice,
           restaurant: cart.restaurant,
           user: user,
