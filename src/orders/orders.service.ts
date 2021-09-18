@@ -201,10 +201,13 @@ export class OrdersService {
     }
   }
 
-  async getOrder(user: User, { id }: GetOrderInput): Promise<GetOrderOutput> {
+  async getOrder(
+    user: User,
+    { id, restaurantId }: GetOrderInput,
+  ): Promise<GetOrderOutput> {
     try {
       const order = await this.orders.findOne(
-        { id },
+        { id, ...(restaurantId ? { restaurant: { id: restaurantId } } : {}) },
         { relations: ['restaurant'] },
       );
       if (!order) return notFoundError('Order not found!');
