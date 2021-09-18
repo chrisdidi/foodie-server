@@ -104,7 +104,9 @@ export class OrdersService {
         };
 
       if (!cart || cart.cartItems.length <= 0)
-        return badRequestError("You don't have anything in cart!");
+        return badRequestError(
+          "You don't have anything in cart! Or your food is no longer available in the restaurant.",
+        );
 
       if (!cart.restaurant)
         return badRequestError(
@@ -146,6 +148,7 @@ export class OrdersService {
         };
       }
       // clear cart after success
+      await this.cartService.deleteCart(user);
       return {
         ok: true,
         orderId: order.id,

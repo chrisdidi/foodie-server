@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { CoreOutput } from 'src/common/dtos/output.dto';
 import {
   ERROR_NAMES,
   internalServerError,
@@ -39,6 +40,27 @@ export class CartService {
       price = price + cartItem[i].dish.price * cartItem[i].quantity;
     }
     return +price.toFixed(2);
+  }
+
+  async deleteCart(user: User): Promise<CoreOutput> {
+    try {
+      const cart = await this.cart.findOne({
+        user: {
+          id: user.id,
+        },
+      });
+      await this.cartItem.delete({
+        cart: {
+          id: cart.id,
+        },
+      });
+      return {
+        ok: true,
+      };
+    } catch (error) {
+      console.log(error);
+      return internalServerError();
+    }
   }
 
   async myCart(user: User): Promise<MyCartOutput> {
