@@ -14,6 +14,11 @@ import { CreateOrderItemOutput } from './dtos/create-order-item.dto';
 import { CreateOrderOutput } from './dtos/create-order.dto';
 import { CreateStatusHistoryOutput } from './dtos/create-status-history.dto';
 import { GetOrderInput, GetOrderOutput } from './dtos/get-order.dto';
+import {
+  GetOrdersInput,
+  GetOrdersOutput,
+  OrderWithStatus,
+} from './dtos/get-orders.dto';
 import { SeenOrderInput, SeenOrderOutput } from './dtos/seen-order.dto';
 import {
   UpdateOrderStatusInput,
@@ -237,12 +242,59 @@ export class OrdersService {
       if (orderStatus && orderStatus.length > 0) {
         order.statusHistory = orderStatus;
       }
-      return {
-        ok: true,
-        order,
+      const orderWithStatus = {
+        ...order,
         status: orderStatus[0]?.status || statusMap[0].status,
       };
+      return {
+        ok: true,
+        order: orderWithStatus,
+      };
     } catch (error) {
+      return internalServerError();
+    }
+  }
+
+  async getOrders(
+    user: User,
+    { id: restaurantId }: GetOrdersInput,
+  ): Promise<GetOrdersOutput> {
+    try {
+      const ordersRaw = await this.orders
+        .createQueryBuilder('order')
+        .leftJoinAndSelect('order.restaurant', 'restaurant')
+        .leftJoinAndSelect('restaurant.owner', 'owner')
+        .leftJoinAndSelect('order.items', 'items')
+        .leftJoinAndSelect('order.statusHistory', 'statusHistory')
+        .where(
+          user.role === UserRole.RegularUser
+            ? 'order.userId = :userId'
+            : `owner.id = :ownerId${
+                restaurantId ? ' AND restaurant.id = :restaurantId' : ''
+              }`,
+          {
+            userId: user.id,
+            ownerId: user.id,
+            restaurantId,
+          },
+        )
+        .getMany();
+
+      const orders: OrderWithStatus[] = [];
+      for (let i = 0; i < ordersRaw.length; i++) {
+        const order: OrderWithStatus = {
+          ...ordersRaw[i],
+          status: ordersRaw[i].statusHistory[0].status,
+        };
+        orders.push(order);
+      }
+
+      return {
+        ok: true,
+        orders,
+      };
+    } catch (error) {
+      console.log(error);
       return internalServerError();
     }
   }
