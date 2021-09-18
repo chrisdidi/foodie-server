@@ -6,6 +6,7 @@ import { OrderItem } from './entities/order-item.entity';
 import { OrderStatusHistory } from './entities/order-status-history.entity';
 import { Order } from './entities/order.entity';
 import { OrdersService } from './orders.service';
+import { OrdersResolver } from './orders.resolver';
 
 @Module({
   imports: [
@@ -13,6 +14,6 @@ import { OrdersService } from './orders.service';
     RestaurantsModule,
     CartModule,
   ],
-  providers: [OrdersService],
+  providers: [OrdersService, OrdersResolver],
 })
 export class OrdersModule {}

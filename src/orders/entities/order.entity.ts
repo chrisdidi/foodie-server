@@ -22,15 +22,6 @@ export enum OrderStatus {
   Received = 'Received',
 }
 
-export const statusSequence = {
-  placed: 1,
-  canceled: 2,
-  processing: 3,
-  in_route: 4,
-  delivered: 5,
-  received: 6,
-};
-
 registerEnumType(OrderStatus, { name: 'OrderStatus' });
 @InputType('OrdersInput', { isAbstract: true })
 @ObjectType()

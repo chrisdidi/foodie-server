@@ -10,7 +10,7 @@ import { User } from 'src/users/entities/user.entity';
 import { Column, Entity, ManyToOne, RelationId } from 'typeorm';
 import { Order } from './order.entity';
 
-enum OrderStatusStatus {
+export enum OrderStatusStatus {
   Placed = 'Placed',
   Canceled = 'Canceled',
   Processing = 'Processing',
@@ -18,6 +18,7 @@ enum OrderStatusStatus {
   Delivered = 'Delivered',
   Received = 'Received',
 }
+
 registerEnumType(OrderStatusStatus, { name: 'OrderStatusStatus' });
 
 @InputType('OrderStatusHistory', { isAbstract: true })
@@ -29,12 +30,11 @@ export class OrderStatusHistory extends CoreEntity {
   @IsEnum(OrderStatusStatus)
   status: OrderStatusStatus;
 
-  @Field(() => Order, { nullable: true })
+  @Field(() => Order)
   @ManyToOne(() => Order, (order) => order.statusHistory, {
-    nullable: true,
     onDelete: 'CASCADE',
   })
-  order?: Order;
+  order: Order;
 
   @RelationId(
     (orderStatusHistory: OrderStatusHistory) => orderStatusHistory.order,
