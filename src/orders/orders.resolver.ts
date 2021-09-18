@@ -5,6 +5,10 @@ import { User } from 'src/users/entities/user.entity';
 import { CreateOrderOutput } from './dtos/create-order.dto';
 import { GetOrderInput, GetOrderOutput } from './dtos/get-order.dto';
 import { SeenOrderInput, SeenOrderOutput } from './dtos/seen-order.dto';
+import {
+  UpdateOrderStatusInput,
+  UpdateOrderStatusOutput,
+} from './dtos/update-order-status.dto';
 import { OrdersService } from './orders.service';
 
 @Resolver()
@@ -33,5 +37,14 @@ export class OrdersResolver {
     @Args('input') input: SeenOrderInput,
   ): Promise<SeenOrderOutput> {
     return this.ordersService.seenOrder(user, input);
+  }
+
+  @Mutation(() => UpdateOrderStatusOutput)
+  @Role(['RegularUser', 'RestaurantOwner'])
+  async updateOrderStatus(
+    @AuthUser() user: User,
+    @Args('input') input: UpdateOrderStatusInput,
+  ): Promise<UpdateOrderStatusOutput> {
+    return this.ordersService.updateOrderStatus(user, input);
   }
 }

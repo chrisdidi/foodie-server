@@ -49,6 +49,12 @@ export class CartService {
           id: user.id,
         },
       });
+      await this.cart.update(
+        {
+          id: cart.id,
+        },
+        { restaurant: null },
+      );
       await this.cartItem.delete({
         cart: {
           id: cart.id,

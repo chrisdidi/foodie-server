@@ -48,10 +48,10 @@ export class Order extends CoreEntity {
   statusHistory: OrderStatusHistory[];
 
   @Field(() => Boolean, { defaultValue: true })
-  @Column()
+  @Column({ default: true })
   userSeen?: boolean;
 
   @Field(() => Boolean, { defaultValue: false })
-  @Column()
+  @Column({ default: false })
   restaurantSeen?: boolean;
 }

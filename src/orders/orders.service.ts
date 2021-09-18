@@ -15,6 +15,10 @@ import { CreateOrderOutput } from './dtos/create-order.dto';
 import { CreateStatusHistoryOutput } from './dtos/create-status-history.dto';
 import { GetOrderInput, GetOrderOutput } from './dtos/get-order.dto';
 import { SeenOrderInput, SeenOrderOutput } from './dtos/seen-order.dto';
+import {
+  UpdateOrderStatusInput,
+  UpdateOrderStatusOutput,
+} from './dtos/update-order-status.dto';
 import { OrderItem } from './entities/order-item.entity';
 import {
   OrderStatusHistory,
@@ -39,6 +43,22 @@ export class OrdersService {
     private readonly cartService: CartService,
   ) {}
 
+  async isAuthenticated(user: User, orderId: number): Promise<boolean> {
+    const order = await this.orders.findOne(
+      { id: orderId },
+      { relations: ['restaurant'] },
+    );
+    if (!order) return false;
+    if (user.role === UserRole.RegularUser && user.id !== order.userId)
+      return false;
+    if (
+      user.role === UserRole.RestaurantOwner &&
+      user.id !== order.restaurant.ownerId
+    )
+      return false;
+
+    return true;
+  }
   findNextStatus(
     user: User,
     order: Order,
@@ -62,6 +82,8 @@ export class OrdersService {
     order: Order,
   ): Promise<CreateStatusHistoryOutput> {
     try {
+      const isAuthticated = await this.isAuthenticated(user, order.id);
+      if (!isAuthticated) return unauthorizedError();
       const currentStatus = await this.orderStatusHistory.findOne({
         where: {
           order,
@@ -186,13 +208,8 @@ export class OrdersService {
         { relations: ['restaurant'] },
       );
       if (!order) return notFoundError('Order not found!');
-      if (user.role === UserRole.RegularUser && user.id !== order.userId)
-        return notFoundError('Order not found!');
-      if (
-        user.role === UserRole.RestaurantOwner &&
-        user.id !== order.restaurant?.ownerId
-      )
-        return notFoundError('Order not found!');
+      const isAuthenticated = await this.isAuthenticated(user, id);
+      if (!isAuthenticated) return notFoundError('Order not found!');
 
       const orderItems = await this.orderItems.find({
         where: {
@@ -226,6 +243,7 @@ export class OrdersService {
       return internalServerError();
     }
   }
+
   async seenOrder(
     user: User,
     { id }: SeenOrderInput,
@@ -238,25 +256,59 @@ export class OrdersService {
       if (!order) {
         return notFoundError('Order not found!');
       }
-      if (
-        user.role === UserRole.RegularUser &&
-        user.id === order.userId &&
-        !order.userSeen
-      ) {
-        await this.orders.update({ id }, { userSeen: true });
-      }
-      if (
-        user.role === UserRole.RestaurantOwner &&
-        user.id === order.restaurant.ownerId &&
-        !order.restaurantSeen
-      ) {
-        await this.orders.update({ id }, { restaurantSeen: true });
-      }
+      const isAuthenticated = await this.isAuthenticated(user, id);
+      if (!isAuthenticated) return unauthorizedError();
+      await this.orders.update(
+        { id },
+        user.role === UserRole.RegularUser
+          ? { userSeen: true }
+          : { restaurantSeen: true },
+      );
       return {
         ok: true,
       };
     } catch (error) {
       return internalServerError();
+    }
+  }
+
+  async updateOrderStatus(
+    user: User,
+    { id }: UpdateOrderStatusInput,
+  ): Promise<UpdateOrderStatusOutput> {
+    try {
+      const order = await this.orders.findOne(
+        { id },
+        { relations: ['restaurant'] },
+      );
+      if (!order) return notFoundError('Order not found!');
+      const isAuthenticated = await this.isAuthenticated(user, id);
+      if (!isAuthenticated) return unauthorizedError();
+      const { status, error: statusError } = await this.createStatusHistory(
+        user,
+        order,
+      );
+      if (statusError) {
+        return {
+          ok: false,
+          error: statusError,
+        };
+      }
+      await this.orders.update(
+        { id },
+        user.role === UserRole.RestaurantOwner
+          ? { userSeen: false }
+          : { restaurantSeen: false },
+      );
+      return {
+        ok: true,
+        status,
+      };
+    } catch (error) {
+      console.log(error);
+      return internalServerError(
+        'Failed to update order status! Please try again.',
+      );
     }
   }
 }

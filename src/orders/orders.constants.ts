@@ -2,15 +2,14 @@ import { UserRole } from 'src/users/entities/user.entity';
 import { OrderStatusStatus } from './entities/order-status-history.entity';
 
 export const regUserSequence = {
-  placed: 2,
-  delivered: 6,
+  placed: 1,
+  delivered: 5,
 };
 
 export const restOwnerSequence = {
-  placed: 3,
-  processing: 4,
-  in_route: 5,
-  delivered: 6,
+  placed: 2,
+  processing: 3,
+  in_route: 4,
 };
 
 export const statusMap = [
