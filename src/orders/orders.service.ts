@@ -14,6 +14,7 @@ import { CreateOrderItemOutput } from './dtos/create-order-item.dto';
 import { CreateOrderOutput } from './dtos/create-order.dto';
 import { CreateStatusHistoryOutput } from './dtos/create-status-history.dto';
 import { GetOrderInput, GetOrderOutput } from './dtos/get-order.dto';
+import { SeenOrderInput, SeenOrderOutput } from './dtos/seen-order.dto';
 import { OrderItem } from './entities/order-item.entity';
 import {
   OrderStatusHistory,
@@ -220,6 +221,39 @@ export class OrdersService {
         ok: true,
         order,
         status: orderStatus[0]?.status || statusMap[0].status,
+      };
+    } catch (error) {
+      return internalServerError();
+    }
+  }
+  async seenOrder(
+    user: User,
+    { id }: SeenOrderInput,
+  ): Promise<SeenOrderOutput> {
+    try {
+      const order = await this.orders.findOne(
+        { id },
+        { relations: ['restaurant'] },
+      );
+      if (!order) {
+        return notFoundError('Order not found!');
+      }
+      if (
+        user.role === UserRole.RegularUser &&
+        user.id === order.userId &&
+        !order.userSeen
+      ) {
+        await this.orders.update({ id }, { userSeen: true });
+      }
+      if (
+        user.role === UserRole.RestaurantOwner &&
+        user.id === order.restaurant.ownerId &&
+        !order.restaurantSeen
+      ) {
+        await this.orders.update({ id }, { restaurantSeen: true });
+      }
+      return {
+        ok: true,
       };
     } catch (error) {
       return internalServerError();
