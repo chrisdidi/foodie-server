@@ -71,10 +71,18 @@ export class CartService {
 
   async myCart(user: User): Promise<MyCartOutput> {
     try {
-      const cart = await this.cart.findOne(
+      let cart = await this.cart.findOne(
         { user },
         { relations: ['restaurant'] },
       );
+      const isBlocked = await this.restaurantsService.isUserBlocked(
+        user,
+        cart.restaurant,
+      );
+      if (isBlocked) {
+        await this.deleteCart(user);
+        cart = undefined;
+      }
       if (!cart) {
         return {
           ok: true,

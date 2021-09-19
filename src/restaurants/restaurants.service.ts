@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { INTERNAL_SERVER_ERROR_MESSAGE } from 'src/common/common.constants';
 import {
   badRequestError,
   ERROR_NAMES,
@@ -390,5 +389,25 @@ export class RestaurantsService {
       ok: true,
       restaurants,
     };
+  }
+
+  async isUserBlocked(user: User, { id }: Restaurant): Promise<boolean> {
+    try {
+      // for testing purpose
+      // await this.restaurants
+      //   .createQueryBuilder('restaurant')
+      //   .relation('blocked')
+      //   .of(id)
+      //   .add(user);
+      const blocked = await this.restaurants
+        .createQueryBuilder()
+        .relation('blocked')
+        .of(id)
+        .loadOne();
+      return !!blocked;
+    } catch (error) {
+      console.log(error);
+      return true;
+    }
   }
 }

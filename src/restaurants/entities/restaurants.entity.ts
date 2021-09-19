@@ -4,7 +4,15 @@ import { Cart } from 'src/cart/entities/cart.entity';
 import { CoreEntity } from 'src/common/entities/core.entity';
 import { Order } from 'src/orders/entities/order.entity';
 import { User } from 'src/users/entities/user.entity';
-import { Column, Entity, ManyToOne, OneToMany, RelationId } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  OneToMany,
+  RelationId,
+} from 'typeorm';
 import { Dish } from './dish.entity';
 
 export interface KeywordsType {
@@ -56,4 +64,9 @@ export class Restaurant extends CoreEntity {
   @Field(() => [Order])
   @OneToMany(() => Order, (order) => order.restaurant)
   orders: Order[];
+
+  @Field(() => [User])
+  @ManyToMany(() => User, { eager: true })
+  @JoinTable()
+  blocked: User[];
 }
