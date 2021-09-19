@@ -3,6 +3,7 @@ import { AuthUser } from 'src/auth/auth-user.decorator';
 import { Role } from 'src/auth/role.decorator';
 import { User } from 'src/users/entities/user.entity';
 import { AddDishInput, AddDishOutput } from './dtos/add-dish.dto';
+import { BlockUserInput, BlockUserOutput } from './dtos/block-user.dto';
 import {
   BrowseRestaurantsInput,
   BrowseRestaurantsOutput,
@@ -118,5 +119,14 @@ export class RestaurantsResolver {
     @Args('input') input: BrowseRestaurantsInput,
   ): Promise<BrowseRestaurantsOutput> {
     return this.restaurantService.browseRestaurants(input);
+  }
+
+  @Mutation(() => BlockUserOutput)
+  @Role(['RestaurantOwner'])
+  async blockUser(
+    @AuthUser() authUser: User,
+    @Args('input') input: BlockUserInput,
+  ): Promise<BlockUserOutput> {
+    return this.restaurantService.blockUserFromRestaurant(authUser, input);
   }
 }

@@ -9,8 +9,10 @@ import {
 } from 'src/helpers/http-codes';
 import { extractAndCountKeywords } from 'src/helpers/util';
 import { User } from 'src/users/entities/user.entity';
+import { UsersService } from 'src/users/users.service';
 import { Raw, Repository } from 'typeorm';
 import { AddDishInput, AddDishOutput } from './dtos/add-dish.dto';
+import { BlockUserInput, BlockUserOutput } from './dtos/block-user.dto';
 import {
   BrowseRestaurantsInput,
   BrowseRestaurantsOutput,
@@ -45,6 +47,7 @@ export class RestaurantsService {
     private readonly restaurants: Repository<Restaurant>,
     @InjectRepository(Dish)
     private readonly dishes: Repository<Dish>,
+    private readonly usersService: UsersService,
   ) {}
 
   async createRestaurant(
@@ -391,14 +394,65 @@ export class RestaurantsService {
     };
   }
 
+  async blockUserFromRestaurant(
+    user: User,
+    { blockId, restaurantId, all, unblock }: BlockUserInput,
+  ): Promise<BlockUserOutput> {
+    try {
+      let restaurants: Restaurant[];
+      if (all) {
+        restaurants = await this.restaurants.find({ owner: { id: user.id } });
+      } else if (restaurantId) {
+        restaurants = await this.restaurants.find({ id: restaurantId });
+      }
+      if (!restaurants || restaurants.length === 0)
+        return {
+          ok: false,
+          error: {
+            code: ERROR_NAMES.NOT_FOUND,
+            message: 'No restaurant found!',
+          },
+        };
+      const userToBlock = await this.usersService.findById(blockId);
+
+      if (!userToBlock.user)
+        return {
+          ok: false,
+          error: {
+            code: ERROR_NAMES.NOT_FOUND,
+            message: 'User not found!',
+          },
+        };
+      for (let i = 0; i < restaurants.length; i++) {
+        const blocked = await this.isUserBlocked(
+          userToBlock.user,
+          restaurants[i],
+        );
+        if (!blocked && !unblock) {
+          await this.restaurants
+            .createQueryBuilder('restaurant')
+            .relation('blocked')
+            .of(restaurants[i].id)
+            .add(userToBlock.user);
+        } else if (blocked && unblock) {
+          await this.restaurants
+            .createQueryBuilder('restaurant')
+            .relation('blocked')
+            .of(restaurants[i].id)
+            .remove(blockId);
+        }
+      }
+      return {
+        ok: true,
+      };
+    } catch (error) {
+      console.log(error);
+      return internalServerError();
+    }
+  }
+
   async isUserBlocked(user: User, { id }: Restaurant): Promise<boolean> {
     try {
-      // for testing purpose
-      // await this.restaurants
-      //   .createQueryBuilder('restaurant')
-      //   .relation('blocked')
-      //   .of(id)
-      //   .add(user);
       const blocked = await this.restaurants
         .createQueryBuilder()
         .relation('blocked')
