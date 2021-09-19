@@ -217,7 +217,7 @@ export class OrdersService {
     try {
       const order = await this.orders.findOne(
         { id, ...(restaurantId ? { restaurant: { id: restaurantId } } : {}) },
-        { relations: ['restaurant'] },
+        { relations: ['restaurant', 'user'] },
       );
       if (!order) return notFoundError('Order not found!');
       const isAuthenticated = await this.isAuthenticated(user, id);
@@ -270,6 +270,7 @@ export class OrdersService {
         .leftJoinAndSelect('restaurant.owner', 'owner')
         .leftJoinAndSelect('order.items', 'items')
         .leftJoinAndSelect('order.statusHistory', 'statusHistory')
+        .leftJoinAndSelect('order.user', 'user')
         .where(
           user.role === UserRole.RegularUser
             ? 'order.userId = :userId'
@@ -282,6 +283,7 @@ export class OrdersService {
             restaurantId,
           },
         )
+        .orderBy({ 'order.id': 'DESC', 'statusHistory.id': 'DESC' })
         .getMany();
 
       const orders: OrderWithStatus[] = [];
@@ -296,6 +298,10 @@ export class OrdersService {
       return {
         ok: true,
         orders,
+        restaurant:
+          user.role === UserRole.RestaurantOwner && restaurantId
+            ? orders[0].restaurant || null
+            : null,
       };
     } catch (error) {
       console.log(error);
@@ -327,6 +333,7 @@ export class OrdersService {
         ok: true,
       };
     } catch (error) {
+      console.log(error);
       return internalServerError();
     }
   }
@@ -356,8 +363,8 @@ export class OrdersService {
       await this.orders.update(
         { id },
         user.role === UserRole.RestaurantOwner
-          ? { userSeen: false }
-          : { restaurantSeen: false },
+          ? { restaurantSeen: true, userSeen: false }
+          : { restaurantSeen: false, userSeen: true },
       );
       return {
         ok: true,

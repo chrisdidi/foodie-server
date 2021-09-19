@@ -22,4 +22,7 @@ export class OrderWithStatus extends Order {
 export class GetOrdersOutput extends CoreOutput {
   @Field(() => [OrderWithStatus], { nullable: true })
   orders?: OrderWithStatus[];
+
+  @Field(() => Restaurant, { nullable: true })
+  restaurant?: Restaurant;
 }
