@@ -17,6 +17,9 @@ export class GetOrdersInput extends PartialType(PickType(Restaurant, ['id'])) {}
 export class OrderWithStatus extends Order {
   @Field(() => OrderStatusStatus)
   status: OrderStatusStatus;
+
+  @Field(() => Boolean)
+  userBlocked: boolean;
 }
 @ObjectType()
 export class GetOrdersOutput extends CoreOutput {

@@ -147,7 +147,13 @@ export class RestaurantsService {
 
   async myRestaurants(owner: User): Promise<MyRestaurantsOutput> {
     try {
-      const restaurants = await this.restaurants.find({ owner });
+      const restaurants = await this.restaurants.find({
+        where: { owner },
+        relations: ['orders'],
+      });
+      for (let i = 0; i < restaurants.length; i++) {
+        restaurants[i].orderCounts = restaurants[i].orders.length;
+      }
       return {
         ok: true,
         restaurants,
@@ -428,6 +434,7 @@ export class RestaurantsService {
           userToBlock.user,
           restaurants[i],
         );
+        console.log(blocked);
         if (!blocked && !unblock) {
           await this.restaurants
             .createQueryBuilder('restaurant')
@@ -451,14 +458,18 @@ export class RestaurantsService {
     }
   }
 
-  async isUserBlocked(user: User, { id }: Restaurant): Promise<boolean> {
+  async isUserBlocked(user: User, restaurant: Restaurant): Promise<boolean> {
     try {
+      if (!restaurant) return false;
       const blocked = await this.restaurants
         .createQueryBuilder()
         .relation('blocked')
-        .of(id)
-        .loadOne();
-      return !!blocked;
+        .of(restaurant.id)
+        .loadMany();
+      for (let i = 0; i < blocked.length; i++) {
+        if (blocked[i].id === user.id) return true;
+      }
+      return false;
     } catch (error) {
       console.log(error);
       return true;

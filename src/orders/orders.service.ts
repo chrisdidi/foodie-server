@@ -246,9 +246,13 @@ export class OrdersService {
       if (orderStatus && orderStatus.length > 0) {
         order.statusHistory = orderStatus;
       }
+      const userBlocked = order.restaurant.blocked.findIndex(
+        (bu) => bu.id === order.user.id,
+      );
       const orderWithStatus = {
         ...order,
         status: orderStatus[0]?.status || statusMap[0].status,
+        userBlocked: userBlocked > -1,
       };
       return {
         ok: true,
@@ -291,6 +295,7 @@ export class OrdersService {
         const order: OrderWithStatus = {
           ...ordersRaw[i],
           status: ordersRaw[i].statusHistory[0].status,
+          userBlocked: false,
         };
         orders.push(order);
       }
