@@ -294,7 +294,7 @@ export class OrdersService {
       for (let i = 0; i < ordersRaw.length; i++) {
         const order: OrderWithStatus = {
           ...ordersRaw[i],
-          status: ordersRaw[i].statusHistory[0].status,
+          status: ordersRaw[i]?.statusHistory[0]?.status,
           userBlocked: false,
         };
         orders.push(order);
@@ -305,7 +305,7 @@ export class OrdersService {
         orders,
         restaurant:
           user.role === UserRole.RestaurantOwner && restaurantId
-            ? orders[0].restaurant || null
+            ? orders[0]?.restaurant || null
             : null,
       };
     } catch (error) {
