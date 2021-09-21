@@ -30,6 +30,7 @@ export class CartService {
         cart,
       };
     } catch (error) {
+      console.log(error);
       return internalServerError();
     }
   }
@@ -77,7 +78,7 @@ export class CartService {
       );
       const isBlocked = await this.restaurantsService.isUserBlocked(
         user,
-        cart.restaurant,
+        cart?.restaurant,
       );
       if (isBlocked) {
         await this.deleteCart(user);
