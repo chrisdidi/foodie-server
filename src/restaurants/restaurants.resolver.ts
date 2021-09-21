@@ -115,10 +115,12 @@ export class RestaurantsResolver {
   }
 
   @Query(() => BrowseRestaurantsOutput)
+  @Role(['Any'])
   async browseRestaurants(
+    @AuthUser() user: User,
     @Args('input') input: BrowseRestaurantsInput,
   ): Promise<BrowseRestaurantsOutput> {
-    return this.restaurantService.browseRestaurants(input);
+    return this.restaurantService.browseRestaurants(user, input);
   }
 
   @Mutation(() => BlockUserOutput)

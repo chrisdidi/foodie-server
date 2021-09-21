@@ -364,11 +364,10 @@ export class RestaurantsService {
     }
   }
 
-  async browseRestaurants({
-    limit = 10,
-    query = '',
-    offset = 0,
-  }: BrowseRestaurantsInput): Promise<BrowseRestaurantsOutput> {
+  async browseRestaurants(
+    user: User,
+    { limit = 10, query = '', offset = 0 }: BrowseRestaurantsInput,
+  ): Promise<BrowseRestaurantsOutput> {
     query = query.toLowerCase();
     const queryWords = extractAndCountKeywords({}, query);
     const browseWhere = () => {
@@ -387,12 +386,16 @@ export class RestaurantsService {
       }
     };
 
-    const restaurants = await this.restaurants.find({
-      where: [...browseWhere()],
-      relations: ['dishes'],
-      skip: offset >= 0 ? offset * limit : 0,
-      take: limit,
-    });
+    const restaurants = await this.restaurants
+      .createQueryBuilder('restaurant')
+      .leftJoinAndSelect('restaurant.dishes', 'dishes')
+      .where(browseWhere())
+      .andWhere(
+        `${user.id} NOT IN (SELECT rb."userId" FROM restaurant_blocked_user rb WHERE rb."restaurantId" = restaurant.id)`,
+      )
+      .skip(offset >= 0 ? offset * limit : 0)
+      .take(limit)
+      .getMany();
 
     return {
       ok: true,
