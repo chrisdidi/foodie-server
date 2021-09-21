@@ -391,7 +391,9 @@ export class RestaurantsService {
       .leftJoinAndSelect('restaurant.dishes', 'dishes')
       .where(browseWhere())
       .andWhere(
-        `${user.id} NOT IN (SELECT rb."userId" FROM restaurant_blocked_user rb WHERE rb."restaurantId" = restaurant.id)`,
+        user
+          ? `${user.id} NOT IN (SELECT rb."userId" FROM restaurant_blocked_user rb WHERE rb."restaurantId" = restaurant.id)`
+          : 'true',
       )
       .skip(offset >= 0 ? offset * limit : 0)
       .take(limit)
